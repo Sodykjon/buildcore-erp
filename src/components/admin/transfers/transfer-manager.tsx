@@ -1,0 +1,401 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { ArrowLeftRight, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { cn, formatDate } from '@/lib/utils'
+import { Modal } from '@/components/ui/modal'
+import { ActionButton } from '@/components/ui/action-button'
+import {
+  approveTransferAction, shipTransferAction,
+  receiveTransferAction, requestTransferAction,
+} from '@/app/actions/transfers'
+
+type Store   = { id: string; name: string }
+type Product = { id: string; name: string; sku: string; unit: string }
+type Item    = {
+  id: string; productId: string; quantityRequested: number
+  quantityShipped: number | null; quantityReceived: number | null
+  product: Product
+}
+type Transfer = {
+  id: string; transferNumber: string; status: string; notes: string | null
+  requestedAt: string; shippedAt: string | null; receivedAt: string | null
+  sourceStore: Store; destStore: Store; items: Item[]
+}
+
+const statusColors: Record<string, string> = {
+  REQUESTED: 'bg-gray-500/20   text-gray-400   border-gray-500/30',
+  APPROVED:  'bg-blue-500/20   text-blue-400   border-blue-500/30',
+  SHIPPED:   'bg-amber-500/20  text-amber-400  border-amber-500/30',
+  RECEIVED:  'bg-green-500/20  text-green-400  border-green-500/30',
+  CANCELLED: 'bg-red-500/20    text-red-400    border-red-500/30',
+}
+
+const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
+  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
+
+interface Props {
+  transfers: Transfer[]
+  stores:    Store[]
+  products:  Product[]
+  isAdmin?:  boolean
+  storeId?:  string
+}
+
+export function TransferManager({ transfers: initial, stores, products, isAdmin = true, storeId }: Props) {
+  const [transfers, setTransfers] = useState(initial)
+  const [expanded, setExpanded]   = useState<string | null>(null)
+  const [newOpen, setNewOpen]     = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+  const [, startTrans]            = useTransition()
+
+  function reload() { window.location.reload() }
+
+  async function handleApprove(transferId: string) {
+    try {
+      await approveTransferAction(transferId)
+      setTransfers(ts => ts.map(t => t.id === transferId ? { ...t, status: 'APPROVED' } : t))
+    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Inter-Store Transfers</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{transfers.length} transfers</p>
+        </div>
+        <button
+          onClick={() => setNewOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold
+                     bg-amber-500 hover:bg-amber-400 text-gray-950 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> New Transfer
+        </button>
+      </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {transfers.length === 0 && (
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center text-gray-500">
+            <ArrowLeftRight className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            No transfers yet.
+          </div>
+        )}
+        {transfers.map(t => (
+          <TransferCard
+            key={t.id}
+            transfer={t}
+            expanded={expanded === t.id}
+            onToggle={() => setExpanded(expanded === t.id ? null : t.id)}
+            onApprove={handleApprove}
+            onReload={reload}
+            setError={setError}
+            isAdmin={isAdmin}
+            myStoreId={storeId}
+          />
+        ))}
+      </div>
+
+      <Modal open={newOpen} onClose={() => setNewOpen(false)} title="New Transfer Request" size="lg">
+        <NewTransferForm
+          stores={stores}
+          products={products}
+          defaultSourceStoreId={storeId}
+          onDone={() => { setNewOpen(false); reload() }}
+          setError={setError}
+        />
+      </Modal>
+    </div>
+  )
+}
+
+// ── Transfer Card ─────────────────────────────────────────────────────────────
+
+function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, setError, isAdmin, myStoreId }: {
+  transfer: Transfer; expanded: boolean
+  onToggle: () => void; onApprove: (id: string) => Promise<void>
+  onReload: () => void; setError: (e: string | null) => void
+  isAdmin?: boolean; myStoreId?: string
+}) {
+  const [shipOpen, setShipOpen]       = useState(false)
+  const [receiveOpen, setReceiveOpen] = useState(false)
+
+  return (
+    <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-4">
+        <button onClick={onToggle} className="flex items-center gap-4 flex-1 text-left">
+          <span className="font-mono text-white font-semibold">{t.transferNumber}</span>
+          <span className="text-gray-400 text-sm">{t.sourceStore.name} → {t.destStore.name}</span>
+          {expanded ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
+        </button>
+        <div className="flex items-center gap-3">
+          <span className={cn('text-xs px-2 py-0.5 rounded-full border font-medium', statusColors[t.status])}>
+            {t.status}
+          </span>
+          <span className="text-xs text-gray-500">{formatDate(t.requestedAt)}</span>
+          {/* Action buttons — admin can approve/ship; dest manager can receive */}
+          {t.status === 'REQUESTED' && isAdmin && (
+            <ActionButton size="sm" variant="success" onClick={() => onApprove(t.id)}>
+              Approve
+            </ActionButton>
+          )}
+          {t.status === 'APPROVED' && isAdmin && (
+            <ActionButton size="sm" variant="primary" onClick={() => setShipOpen(true)}>
+              Ship
+            </ActionButton>
+          )}
+          {t.status === 'SHIPPED' && (isAdmin || myStoreId === t.destStore.id) && (
+            <ActionButton size="sm" variant="success" onClick={() => setReceiveOpen(true)}>
+              Receive
+            </ActionButton>
+          )}
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="border-t border-gray-800 p-5 grid grid-cols-3 gap-2">
+          {t.items.map(item => (
+            <div key={item.id} className="bg-gray-800 rounded-lg p-3 text-xs">
+              <p className="font-medium text-white truncate">{item.product.name}</p>
+              <p className="text-gray-400 mt-1 space-x-1">
+                <span>Req: <span className="text-white">{item.quantityRequested}</span></span>
+                {item.quantityShipped != null && <span>· Ship: <span className="text-amber-400">{item.quantityShipped}</span></span>}
+                {item.quantityReceived != null && <span>· Rcv: <span className="text-green-400">{item.quantityReceived}</span></span>}
+                <span className="text-gray-600">({item.product.unit})</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Ship modal */}
+      <Modal open={shipOpen} onClose={() => setShipOpen(false)} title="Ship Transfer" size="md">
+        <ShipForm
+          transfer={t}
+          onDone={() => { setShipOpen(false); onReload() }}
+          setError={setError}
+        />
+      </Modal>
+
+      {/* Receive modal */}
+      <Modal open={receiveOpen} onClose={() => setReceiveOpen(false)} title="Receive Transfer" size="md">
+        <ReceiveForm
+          transfer={t}
+          onDone={() => { setReceiveOpen(false); onReload() }}
+          setError={setError}
+        />
+      </Modal>
+    </div>
+  )
+}
+
+// ── Ship Form ─────────────────────────────────────────────────────────────────
+
+function ShipForm({ transfer, onDone, setError }: {
+  transfer: Transfer; onDone: () => void; setError: (e: string | null) => void
+}) {
+  const [pending, startTrans] = useTransition()
+  const [qtys, setQtys]       = useState<Record<string, number>>(
+    Object.fromEntries(transfer.items.map(i => [i.id, i.quantityRequested]))
+  )
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const items = transfer.items.map(i => ({ transferItemId: i.id, quantityShipped: qtys[i.id] ?? 0 }))
+    const fd = new FormData()
+    fd.set('transferId', transfer.id)
+    fd.set('items', JSON.stringify(items))
+    startTrans(async () => {
+      try {
+        await shipTransferAction(fd)
+        onDone()
+      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-sm text-gray-400">Confirm quantities to ship from <strong className="text-white">{transfer.sourceStore.name}</strong>.</p>
+      <div className="space-y-2">
+        {transfer.items.map(item => (
+          <div key={item.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm text-white">{item.product.name}</p>
+              <p className="text-xs text-gray-500">Requested: {item.quantityRequested} {item.product.unit}</p>
+            </div>
+            <input
+              type="number" min="0" max={item.quantityRequested}
+              value={qtys[item.id] ?? item.quantityRequested}
+              onChange={e => setQtys(q => ({ ...q, [item.id]: parseInt(e.target.value) || 0 }))}
+              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-right text-white outline-none focus:border-amber-500"
+            />
+          </div>
+        ))}
+      </div>
+      <button type="submit" disabled={pending}
+        className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-sm transition-all disabled:opacity-50">
+        {pending ? 'Shipping…' : 'Confirm Ship'}
+      </button>
+    </form>
+  )
+}
+
+// ── Receive Form ──────────────────────────────────────────────────────────────
+
+function ReceiveForm({ transfer, onDone, setError }: {
+  transfer: Transfer; onDone: () => void; setError: (e: string | null) => void
+}) {
+  const [pending, startTrans] = useTransition()
+  const [qtys, setQtys]       = useState<Record<string, number>>(
+    Object.fromEntries(transfer.items.map(i => [i.id, i.quantityShipped ?? i.quantityRequested]))
+  )
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const items = transfer.items.map(i => ({ transferItemId: i.id, quantityReceived: qtys[i.id] ?? 0 }))
+    const fd = new FormData()
+    fd.set('transferId', transfer.id)
+    fd.set('items', JSON.stringify(items))
+    startTrans(async () => {
+      try {
+        await receiveTransferAction(fd)
+        onDone()
+      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <p className="text-sm text-gray-400">Confirm quantities received at <strong className="text-white">{transfer.destStore.name}</strong>.</p>
+      <div className="space-y-2">
+        {transfer.items.map(item => (
+          <div key={item.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3">
+            <div>
+              <p className="text-sm text-white">{item.product.name}</p>
+              <p className="text-xs text-gray-500">Shipped: {item.quantityShipped ?? '—'} {item.product.unit}</p>
+            </div>
+            <input
+              type="number" min="0" max={item.quantityShipped ?? item.quantityRequested}
+              value={qtys[item.id] ?? (item.quantityShipped ?? item.quantityRequested)}
+              onChange={e => setQtys(q => ({ ...q, [item.id]: parseInt(e.target.value) || 0 }))}
+              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-right text-white outline-none focus:border-amber-500"
+            />
+          </div>
+        ))}
+      </div>
+      <button type="submit" disabled={pending}
+        className="w-full py-2.5 rounded-lg bg-green-500 hover:bg-green-400 text-gray-950 font-bold text-sm transition-all disabled:opacity-50">
+        {pending ? 'Receiving…' : 'Confirm Receive'}
+      </button>
+    </form>
+  )
+}
+
+// ── New Transfer Form ─────────────────────────────────────────────────────────
+
+function NewTransferForm({ stores, products, onDone, setError, defaultSourceStoreId }: {
+  stores: Store[]; products: Product[]
+  onDone: () => void; setError: (e: string | null) => void
+  defaultSourceStoreId?: string
+}) {
+  const [pending, startTrans] = useTransition()
+  const [lines, setLines]     = useState<{ productId: string; qty: number }[]>([{ productId: '', qty: 1 }])
+  const [err, setErr]         = useState<string | null>(null)
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const fd = new FormData(e.currentTarget)
+    const items = lines.filter(l => l.productId).map(l => ({ productId: l.productId, quantityRequested: l.qty }))
+    if (items.length === 0) { setErr('Add at least one product'); return }
+    fd.set('items', JSON.stringify(items))
+    startTrans(async () => {
+      try {
+        setErr(null)
+        await requestTransferAction(fd)
+        onDone()
+      } catch (ex: unknown) {
+        const msg = ex instanceof Error ? ex.message : 'Error'
+        setErr(msg); setError(msg)
+      }
+    })
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">From Store *</label>
+          {defaultSourceStoreId ? (
+            <>
+              <input type="hidden" name="sourceStoreId" value={defaultSourceStoreId} />
+              <div className={`${inputCls} text-gray-300 cursor-not-allowed opacity-70`}>
+                {stores.find(s => s.id === defaultSourceStoreId)?.name ?? 'Your store'}
+              </div>
+            </>
+          ) : (
+            <select name="sourceStoreId" required className={inputCls}>
+              <option value="">Select source…</option>
+              {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          )}
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">To Store *</label>
+          <select name="destStoreId" required className={inputCls}>
+            <option value="">Select destination…</option>
+            {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500">Products</p>
+          <button type="button" onClick={() => setLines(ls => [...ls, { productId: '', qty: 1 }])}
+            className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
+            + Add line
+          </button>
+        </div>
+        {lines.map((line, i) => (
+          <div key={i} className="flex gap-2">
+            <select
+              value={line.productId}
+              onChange={e => setLines(ls => ls.map((l, j) => j === i ? { ...l, productId: e.target.value } : l))}
+              className={`${inputCls} flex-1`}
+            >
+              <option value="">Select product…</option>
+              {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+            </select>
+            <input
+              type="number" min="1" value={line.qty}
+              onChange={e => setLines(ls => ls.map((l, j) => j === i ? { ...l, qty: parseInt(e.target.value) || 1 } : l))}
+              className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+            />
+            {lines.length > 1 && (
+              <button type="button" onClick={() => setLines(ls => ls.filter((_, j) => j !== i))}
+                className="text-gray-600 hover:text-red-400 transition-colors px-2">×</button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <label className="block text-xs text-gray-500 mb-1">Notes</label>
+        <input name="notes" className={inputCls} placeholder="Optional notes…" />
+      </div>
+
+      {err && <p className="text-sm text-red-400">{err}</p>}
+
+      <button type="submit" disabled={pending}
+        className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-sm transition-all disabled:opacity-50">
+        {pending ? 'Requesting…' : 'Request Transfer'}
+      </button>
+    </form>
+  )
+}

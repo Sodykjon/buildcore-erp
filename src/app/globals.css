@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* ── Thermal Label: 2×1 inch @ 203 DPI ───────────────────────── */
+@media print {
+  body > *:not(.thermal-print-area) { display: none !important; }
+
+  @page {
+    size: 2in 1in;
+    margin: 0;
+  }
+
+  .thermal-label {
+    width:          2in;
+    height:         1in;
+    padding:        2mm 3mm;
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    justify-content: center;
+    font-family:    'Courier New', monospace;
+    page-break-after: always;
+    background:     white;
+    color:          black;
+  }
+
+  .thermal-store {
+    font-size:      6pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color:          #555;
+    margin-bottom:  1mm;
+  }
+
+  .thermal-name {
+    font-size:     8pt;
+    font-weight:   bold;
+    text-align:    center;
+    max-width:     100%;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    white-space:   nowrap;
+    margin-bottom: 1mm;
+  }
+
+  .thermal-barcode      { width: 100%; height: 10mm; }
+  .thermal-barcode-text { font-size: 6pt; letter-spacing: 1px; margin-top: 0.5mm; }
+  .thermal-price        { font-size: 9pt; font-weight: bold; margin-top: 1mm; }
+}

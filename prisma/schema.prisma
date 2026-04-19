@@ -1,0 +1,496 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  WAREHOUSE_MANAGER
+  STAFF
+}
+
+enum TransferStatus {
+  REQUESTED
+  APPROVED
+  SHIPPED
+  RECEIVED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PARTIAL
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+enum LoyaltyTxType {
+  EARN
+  REDEEM
+  ADJUSTMENT
+}
+
+enum WorkOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum WorkOrderType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+  DAMAGE_WRITE_OFF
+}
+
+model Store {
+  id        String   @id @default(uuid())
+  name      String
+  address   String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profiles            Profile[]
+  inventory           StoreInventory[]
+  ordersAsOrigin      Order[]                  @relation("StoreOrders")
+  transfersOut        StoreTransfer[]          @relation("TransferSource")
+  transfersIn         StoreTransfer[]          @relation("TransferDestination")
+  lowStockAlerts      LowStockAlert[]
+  workOrders          WorkOrder[]
+  purchaseOrders      PurchaseOrder[]
+  adjustmentLogs      InventoryAdjustmentLog[]
+  quotations          Quotation[]
+
+  @@map("stores")
+}
+
+model Profile {
+  id        String   @id
+  email     String   @unique
+  fullName  String
+  role      Role     @default(STAFF)
+  storeId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store      Store?      @relation(fields: [storeId], references: [id])
+  orders     Order[]
+  quotations Quotation[]
+
+  @@map("profiles")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  sku         String   @unique
+  barcode     String   @unique
+  name        String
+  description String?
+  unit        String
+  costPrice   Decimal  @db.Decimal(12, 2)
+  sellPrice   Decimal  @db.Decimal(12, 2)
+  categoryId  String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category        Category                 @relation(fields: [categoryId], references: [id])
+  inventory       StoreInventory[]
+  orderItems      OrderItem[]
+  transferItems   TransferItem[]
+  workOrderItems     WorkOrderItem[]
+  adjustmentLogs     InventoryAdjustmentLog[]
+  lowStockAlerts     LowStockAlert[]
+  purchaseOrderItems PurchaseOrderItem[]
+  quotationItems     QuotationItem[]
+
+  @@map("products")
+}
+
+model StoreInventory {
+  id                String   @id @default(uuid())
+  storeId           String
+  productId         String
+  quantityOnHand    Int      @default(0)
+  quantityReserved  Int      @default(0)
+  lowStockThreshold Int      @default(10)
+  updatedAt         DateTime @updatedAt
+
+  store   Store   @relation(fields: [storeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([storeId, productId])
+  @@map("store_inventory")
+}
+
+model Customer {
+  id            String   @id @default(uuid())
+  fullName      String
+  phone         String   @unique
+  email         String?
+  loyaltyPoints Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders     Order[]
+  loyaltyTxs    LoyaltyTransaction[]
+  creditAccount CreditAccount?
+  quotations    Quotation[]
+
+  @@map("customers")
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique
+  storeId     String
+  customerId  String?
+  staffId     String
+  status      OrderStatus @default(PENDING)
+  notes       String?
+  totalAmount Decimal     @db.Decimal(12, 2)
+  paidAt      DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  store    Store       @relation("StoreOrders", fields: [storeId], references: [id])
+  customer Customer?   @relation(fields: [customerId], references: [id])
+  staff    Profile     @relation(fields: [staffId], references: [id])
+  items    OrderItem[]
+  delivery Delivery?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String   @id @default(uuid())
+  orderId          String
+  productId        String
+  unitPrice        Decimal  @db.Decimal(12, 2)
+  quantityOrdered  Int
+  quantityPickedUp Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  order           Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product          @relation(fields: [productId], references: [id])
+  fulfillmentLogs FulfillmentLog[]
+
+  @@map("order_items")
+}
+
+model FulfillmentLog {
+  id            String   @id @default(uuid())
+  orderItemId   String
+  quantityTaken Int
+  staffId       String
+  pickedUpAt    DateTime @default(now())
+  notes         String?
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id])
+
+  @@map("fulfillment_logs")
+}
+
+model StoreTransfer {
+  id             String         @id @default(uuid())
+  transferNumber String         @unique
+  sourceStoreId  String
+  destStoreId    String
+  requestedById  String
+  approvedById   String?
+  shippedById    String?
+  receivedById   String?
+  status         TransferStatus @default(REQUESTED)
+  notes          String?
+  requestedAt    DateTime       @default(now())
+  shippedAt      DateTime?
+  receivedAt     DateTime?
+
+  sourceStore Store          @relation("TransferSource", fields: [sourceStoreId], references: [id])
+  destStore   Store          @relation("TransferDestination", fields: [destStoreId], references: [id])
+  items       TransferItem[]
+
+  @@map("store_transfers")
+}
+
+model TransferItem {
+  id                String  @id @default(uuid())
+  transferId        String
+  productId         String
+  quantityRequested Int
+  quantityShipped   Int?
+  quantityReceived  Int?
+
+  transfer StoreTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product       @relation(fields: [productId], references: [id])
+
+  @@map("transfer_items")
+}
+
+model LoyaltyTransaction {
+  id         String        @id @default(uuid())
+  customerId String
+  type       LoyaltyTxType
+  points     Int
+  orderId    String?
+  note       String?
+  createdAt  DateTime      @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("loyalty_transactions")
+}
+
+model WorkOrder {
+  id          String          @id @default(uuid())
+  woNumber    String          @unique
+  type        WorkOrderType
+  status      WorkOrderStatus @default(DRAFT)
+  storeId     String
+  requestedById String
+  approvedById  String?
+  reason      String
+  adminNote   String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  submittedAt DateTime?
+  resolvedAt  DateTime?
+
+  store       Store           @relation(fields: [storeId], references: [id])
+  items       WorkOrderItem[]
+
+  @@map("work_orders")
+}
+
+model WorkOrderItem {
+  id          String    @id @default(uuid())
+  workOrderId String
+  productId   String
+  quantity    Int
+  note        String?
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("work_order_items")
+}
+
+model InventoryAdjustmentLog {
+  id          String   @id @default(uuid())
+  storeId     String
+  productId   String
+  staffId     String
+  type        String
+  quantity    Int
+  before      Int
+  after       Int
+  reason      String
+  workOrderId String?
+  createdAt   DateTime @default(now())
+
+  store   Store   @relation(fields: [storeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("inventory_adjustment_logs")
+}
+
+model SystemConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+model LowStockAlert {
+  id        String   @id @default(uuid())
+  storeId   String
+  productId String
+  quantity  Int
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  store   Store   @relation(fields: [storeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("low_stock_alerts")
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id          String              @id @default(uuid())
+  poNumber    String              @unique
+  supplierId  String
+  storeId     String
+  createdById String
+  status      PurchaseOrderStatus @default(DRAFT)
+  notes       String?
+  orderedAt   DateTime?
+  receivedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  supplier  Supplier            @relation(fields: [supplierId], references: [id])
+  store     Store               @relation(fields: [storeId], references: [id])
+  items     PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id               String  @id @default(uuid())
+  purchaseOrderId  String
+  productId        String
+  quantityOrdered  Int
+  quantityReceived Int     @default(0)
+  unitCost         Decimal @db.Decimal(12, 2)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+// ── Optional: Delivery dispatch ───────────────────────────────────────────────
+
+enum DeliveryStatus {
+  PENDING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+}
+
+model Delivery {
+  id         String         @id @default(uuid())
+  orderId    String         @unique
+  driverName String
+  driverPhone String?
+  status     DeliveryStatus @default(PENDING)
+  notes      String?
+  scheduledAt DateTime?
+  deliveredAt DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("deliveries")
+}
+
+// ── Optional: Customer credit accounts ───────────────────────────────────────
+
+model CreditAccount {
+  id             String   @id @default(uuid())
+  customerId     String   @unique
+  creditLimit    Decimal  @db.Decimal(12, 2) @default(0)
+  currentBalance Decimal  @db.Decimal(12, 2) @default(0)
+  terms          Int      @default(30)  // net-N days
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  transactions CreditTx[]
+
+  @@map("credit_accounts")
+}
+
+model CreditTx {
+  id              String   @id @default(uuid())
+  creditAccountId String
+  type            String   // CHARGE | PAYMENT | ADJUSTMENT
+  amount          Decimal  @db.Decimal(12, 2)
+  note            String?
+  orderId         String?
+  createdAt       DateTime @default(now())
+
+  creditAccount CreditAccount @relation(fields: [creditAccountId], references: [id])
+
+  @@map("credit_transactions")
+}
+
+// ── Optional: Quotations ──────────────────────────────────────────────────────
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  EXPIRED
+  CONVERTED
+}
+
+model Quotation {
+  id          String      @id @default(uuid())
+  quoteNumber String      @unique
+  storeId     String
+  customerId  String
+  staffId     String
+  status      QuoteStatus @default(DRAFT)
+  notes       String?
+  expiresAt   DateTime?
+  convertedOrderId String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  store    Store         @relation(fields: [storeId], references: [id])
+  customer Customer      @relation(fields: [customerId], references: [id])
+  staff    Profile       @relation(fields: [staffId], references: [id])
+  items    QuotationItem[]
+
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id          String  @id @default(uuid())
+  quotationId String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(12, 2)
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("quotation_items")
+}
