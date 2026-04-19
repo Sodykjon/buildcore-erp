@@ -2,23 +2,26 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 
-// Reuse a single connection pool across all requests and hot reloads
-const globalForPrisma = globalThis as unknown as {
-  pool:   Pool         | undefined
-  prisma: PrismaClient | undefined
+declare global {
+  // eslint-disable-next-line no-var
+  var _prismaPool:   Pool         | undefined
+  // eslint-disable-next-line no-var
+  var _prismaClient: PrismaClient | undefined
 }
 
-const pool = globalForPrisma.pool ?? new Pool({
-  connectionString: process.env.DATABASE_URL!,
-  ssl:              { rejectUnauthorized: false },
-  max:              5,    // max concurrent connections
-  idleTimeoutMillis: 30000,
-})
+function createPrisma(): PrismaClient {
+  if (!process.env.DATABASE_URL) {
+    // Build-time stub — never actually called during real requests
+    return new PrismaClient()
+  }
+  const pool = global._prismaPool ?? (global._prismaPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 5,
+    idleTimeoutMillis: 30000,
+  }))
+  return new PrismaClient({ adapter: new PrismaPg(pool) })
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.pool = pool
-
-const adapter = new PrismaPg(pool)
-
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter })
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const prisma: PrismaClient =
+  global._prismaClient ?? (global._prismaClient = createPrisma())
