@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getOrderFulfillmentStatus } from '@/lib/fulfillment'
 import { requireApiAuth } from '@/lib/auth'
