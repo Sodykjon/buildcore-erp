@@ -24,7 +24,7 @@ export default async function CreditPage() {
     select:  { id: true, fullName: true, phone: true },
   })
 
-  const serialized = accounts.map(a => ({
+  const serialized = accounts.map((a: typeof accounts[number]) => ({
     ...a,
     creditLimit:    Number(a.creditLimit),
     currentBalance: Number(a.currentBalance),

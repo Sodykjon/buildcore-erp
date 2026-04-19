@@ -18,7 +18,7 @@ export default async function AlertsPage() {
     take: 200,
   })
 
-  const serialized = alerts.map(a => ({
+  const serialized = alerts.map((a: typeof alerts[number]) => ({
     ...a,
     createdAt: a.createdAt.toISOString(),
   }))
