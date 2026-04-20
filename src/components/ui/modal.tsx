@@ -30,15 +30,16 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       <div
         ref={ref}
         className={cn(
-          'relative bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full',
+          'relative rounded-2xl shadow-2xl w-full',
           size === 'sm' && 'max-w-sm',
           size === 'md' && 'max-w-lg',
           size === 'lg' && 'max-w-2xl',
         )}
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-          <h2 className="font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+          <button onClick={onClose} className="transition-colors hover:opacity-80" style={{ color: 'var(--text-muted)' }}>
             <X className="w-4 h-4" />
           </button>
         </div>

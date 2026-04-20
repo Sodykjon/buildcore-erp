@@ -10,16 +10,13 @@ interface ActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
   size?: 'sm' | 'md'
 }
 
-const variants = {
-  primary: 'bg-amber-500 hover:bg-amber-400 text-gray-950',
-  danger:  'bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30',
-  ghost:   'bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700',
-  success: 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30',
-}
+const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-4 py-2 text-sm' }
 
-const sizes = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
+const variantStyles: Record<string, React.CSSProperties> = {
+  primary: { background: 'var(--accent)', color: 'var(--accent-fg)' },
+  danger:  { background: 'rgba(239,68,68,0.15)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' },
+  ghost:   { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' },
+  success: { background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' },
 }
 
 export function ActionButton({
@@ -34,10 +31,10 @@ export function ActionButton({
       onClick={() => startTransition(() => Promise.resolve(onClick()))}
       className={cn(
         'inline-flex items-center gap-2 rounded-lg font-medium transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed',
-        variants[variant],
         sizes[size],
         className,
       )}
+      style={variantStyles[variant]}
     >
       {pending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
       {children}
