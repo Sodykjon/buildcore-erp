@@ -16,9 +16,8 @@ const roleColor = {
   STAFF:             'text-gray-400',
 }
 
-const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
-const labelCls = 'block text-xs text-gray-500 mb-1'
+const inputCls = `w-full rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 transition-colors`
+const labelCls = 'block text-xs mb-1'
 
 export function UserManager({ profiles: initial, stores }: { profiles: Profile[]; stores: Store[] }) {
   const [profiles, setProfiles] = useState(initial)
@@ -44,8 +43,8 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Users</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{profiles.length} accounts</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Users</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{profiles.length} accounts</p>
         </div>
         <button
           onClick={() => setAddOpen(true)}
@@ -62,10 +61,10 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+            <tr className="text-xs uppercase tracking-wider" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               <th className="text-left px-4 py-3 font-medium">Name</th>
               <th className="text-left px-4 py-3 font-medium">Email</th>
               <th className="text-left px-4 py-3 font-medium">Role</th>
@@ -73,20 +72,20 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
               <th className="px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody>
             {profiles.map(p => {
               const RoleIcon = roleIcon[p.role as keyof typeof roleIcon] ?? User
               return (
-                <tr key={p.id} className="hover:bg-gray-800/40 transition-colors">
-                  <td className="px-4 py-3 font-medium text-white">{p.fullName}</td>
-                  <td className="px-4 py-3 text-gray-400">{p.email}</td>
+                <tr key={p.id} className="hover:bg-gray-800/40 transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>{p.fullName}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{p.email}</td>
                   <td className="px-4 py-3">
                     <span className={`flex items-center gap-1.5 text-xs font-semibold ${roleColor[p.role as keyof typeof roleColor] ?? 'text-gray-400'}`}>
                       <RoleIcon className="w-3.5 h-3.5" />
                       {p.role.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400">{p.store?.name ?? <span className="text-gray-600">All stores</span>}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{p.store?.name ?? <span style={{ color: 'var(--text-muted)' }}>All stores</span>}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 justify-end">
                       <button onClick={() => setEditTarget(p)}
@@ -108,7 +107,7 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
             })}
             {profiles.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   No users found.
                 </td>
@@ -163,32 +162,35 @@ function UserForm({ stores, onDone, setError }: {
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelCls}>Full Name *</label>
-        <input name="fullName" required className={inputCls} placeholder="Jane Smith" />
+        <label className={labelCls} style={labelStyle}>Full Name *</label>
+        <input name="fullName" required className={inputCls} placeholder="Jane Smith" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Email *</label>
-        <input name="email" type="email" required className={inputCls} placeholder="jane@company.com" />
+        <label className={labelCls} style={labelStyle}>Email *</label>
+        <input name="email" type="email" required className={inputCls} placeholder="jane@company.com" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Password *</label>
-        <input name="password" type="password" required minLength={8} className={inputCls} placeholder="Min 8 characters" />
+        <label className={labelCls} style={labelStyle}>Password *</label>
+        <input name="password" type="password" required minLength={8} className={inputCls} placeholder="Min 8 characters" style={inputStyle} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>Role *</label>
-          <select name="role" required value={role} onChange={e => setRole(e.target.value)} className={inputCls}>
+          <label className={labelCls} style={labelStyle}>Role *</label>
+          <select name="role" required value={role} onChange={e => setRole(e.target.value)} className={inputCls} style={inputStyle}>
             <option value="STAFF">Staff</option>
             <option value="WAREHOUSE_MANAGER">Warehouse Manager</option>
             <option value="ADMIN">Admin</option>
           </select>
         </div>
         <div>
-          <label className={labelCls}>Store {role === 'ADMIN' ? '(optional)' : '*'}</label>
-          <select name="storeId" required={role !== 'ADMIN'} className={inputCls}>
+          <label className={labelCls} style={labelStyle}>Store {role === 'ADMIN' ? '(optional)' : '*'}</label>
+          <select name="storeId" required={role !== 'ADMIN'} className={inputCls} style={inputStyle}>
             <option value="">All stores (Admin)</option>
             {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -226,25 +228,28 @@ function EditUserForm({ profile, stores, onDone, setError }: {
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelCls}>Full Name *</label>
-        <input name="fullName" required defaultValue={profile.fullName} className={inputCls} />
+        <label className={labelCls} style={labelStyle}>Full Name *</label>
+        <input name="fullName" required defaultValue={profile.fullName} className={inputCls} style={inputStyle} />
       </div>
-      <p className="text-xs text-gray-500">Email: {profile.email} (cannot change)</p>
+      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Email: {profile.email} (cannot change)</p>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>Role *</label>
-          <select name="role" required value={role} onChange={e => setRole(e.target.value)} className={inputCls}>
+          <label className={labelCls} style={labelStyle}>Role *</label>
+          <select name="role" required value={role} onChange={e => setRole(e.target.value)} className={inputCls} style={inputStyle}>
             <option value="STAFF">Staff</option>
             <option value="WAREHOUSE_MANAGER">Warehouse Manager</option>
             <option value="ADMIN">Admin</option>
           </select>
         </div>
         <div>
-          <label className={labelCls}>Store</label>
-          <select name="storeId" className={inputCls} defaultValue={profile.storeId ?? ''}>
+          <label className={labelCls} style={labelStyle}>Store</label>
+          <select name="storeId" className={inputCls} defaultValue={profile.storeId ?? ''} style={inputStyle}>
             <option value="">All stores (Admin)</option>
             {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -281,12 +286,15 @@ function ResetPasswordForm({ profile, onDone, setError }: {
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-gray-400">Reset password for <strong className="text-white">{profile.fullName}</strong></p>
+      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Reset password for <strong style={{ color: 'var(--text-primary)' }}>{profile.fullName}</strong></p>
       <div>
-        <label className={labelCls}>New Password *</label>
-        <input name="password" type="password" required minLength={8} className={inputCls} placeholder="Min 8 characters" />
+        <label className={labelCls} style={labelStyle}>New Password *</label>
+        <input name="password" type="password" required minLength={8} className={inputCls} placeholder="Min 8 characters" style={inputStyle} />
       </div>
       {err && <p className="text-sm text-red-400">{err}</p>}
       <button type="submit" disabled={pending}

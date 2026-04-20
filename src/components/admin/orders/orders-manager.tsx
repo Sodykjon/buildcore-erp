@@ -75,8 +75,8 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Orders</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{visible.length} orders</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Orders</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{visible.length} orders</p>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -84,14 +84,14 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
             placeholder="Order # or customer…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                       text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 w-52"
+            className="rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 w-52"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
           />
           <select
             value={statusFilter}
             onChange={e => setStatus(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                       text-gray-300 outline-none focus:border-amber-500"
+            className="rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
           >
             <option value="">All statuses</option>
             {statuses.map(s => <option key={s} value={s}>{s}</option>)}
@@ -105,10 +105,10 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+            <tr className="text-xs uppercase tracking-wider" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               <th className="text-left px-4 py-3 font-medium">Order</th>
               <th className="text-left px-4 py-3 font-medium">Customer</th>
               <th className="text-left px-4 py-3 font-medium">Store</th>
@@ -119,9 +119,9 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
               <th className="px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody>
             {visible.map(order => (
-              <tr key={order.id} className="hover:bg-gray-800/40 transition-colors">
+              <tr key={order.id} className="hover:bg-gray-800/40 transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => setDetailOrder(order)}
@@ -130,18 +130,18 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
                     {order.orderNumber}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-gray-300">{order.customer.fullName}</td>
-                <td className="px-4 py-3 text-gray-400">{order.store.name}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{order.customer.fullName}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{order.store.name}</td>
                 <td className="px-4 py-3">
                   <span className={cn('text-xs px-2 py-0.5 rounded-full border font-medium', statusColors[order.status])}>
                     {order.status}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right text-gray-300 font-mono">
+                <td className="px-4 py-3 text-right font-mono" style={{ color: 'var(--text-secondary)' }}>
                   {formatCurrency(order.totalAmount)}
                 </td>
-                <td className="px-4 py-3 text-right text-gray-400">{order.items.length}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(order.createdAt)}</td>
+                <td className="px-4 py-3 text-right" style={{ color: 'var(--text-secondary)' }}>{order.items.length}</td>
+                <td className="px-4 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>{formatDate(order.createdAt)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 justify-end">
                     {(order.status === 'PAID' || order.status === 'PARTIAL') && (
@@ -160,7 +160,7 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">No orders found.</td>
+                <td colSpan={8} className="px-4 py-12 text-center" style={{ color: 'var(--text-muted)' }}>No orders found.</td>
               </tr>
             )}
           </tbody>
@@ -180,46 +180,46 @@ function OrderDetail({ order }: { order: Order }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <p className="text-gray-500 text-xs mb-1">Customer</p>
-          <p className="text-white">{order.customer.fullName}</p>
-          <p className="text-gray-400 text-xs">{order.customer.phone}</p>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Customer</p>
+          <p style={{ color: 'var(--text-primary)' }}>{order.customer.fullName}</p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{order.customer.phone}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs mb-1">Store</p>
-          <p className="text-white">{order.store.name}</p>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Store</p>
+          <p style={{ color: 'var(--text-primary)' }}>{order.store.name}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-xs mb-1">Status</p>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Status</p>
           <span className={cn('text-xs px-2 py-0.5 rounded-full border font-medium', statusColors[order.status] ?? 'bg-gray-500/20 text-gray-400 border-gray-500/30')}>
             {order.status}
           </span>
         </div>
         <div>
-          <p className="text-gray-500 text-xs mb-1">Date</p>
-          <p className="text-white text-xs">{formatDate(order.createdAt)}</p>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Date</p>
+          <p className="text-xs" style={{ color: 'var(--text-primary)' }}>{formatDate(order.createdAt)}</p>
         </div>
       </div>
 
-      <div className="border-t border-gray-800 pt-4">
-        <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Items</p>
+      <div className="pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+        <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Items</p>
         <div className="space-y-2">
           {order.items.map(item => (
-            <div key={item.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 text-sm">
+            <div key={item.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm" style={{ background: 'var(--bg-elevated)' }}>
               <div>
-                <p className="text-white">{item.productName}</p>
-                <p className="text-xs text-gray-500">
+                <p style={{ color: 'var(--text-primary)' }}>{item.productName}</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {item.quantityPickedUp}/{item.quantityOrdered} {item.unit} picked up
                 </p>
               </div>
-              <p className="text-gray-300 font-mono">{formatCurrency(item.unitPrice * item.quantityOrdered)}</p>
+              <p className="font-mono" style={{ color: 'var(--text-secondary)' }}>{formatCurrency(item.unitPrice * item.quantityOrdered)}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="border-t border-gray-800 pt-3 flex justify-between items-center">
-        <span className="text-gray-400 font-medium">Total</span>
-        <span className="text-white font-bold font-mono text-lg">{formatCurrency(order.totalAmount)}</span>
+      <div className="pt-3 flex justify-between items-center" style={{ borderTop: '1px solid var(--border)' }}>
+        <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>Total</span>
+        <span className="font-bold font-mono text-lg" style={{ color: 'var(--text-primary)' }}>{formatCurrency(order.totalAmount)}</span>
       </div>
     </div>
   )

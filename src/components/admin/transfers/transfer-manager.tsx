@@ -31,8 +31,7 @@ const statusColors: Record<string, string> = {
   CANCELLED: 'bg-red-500/20    text-red-400    border-red-500/30',
 }
 
-const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
+const inputCls = `w-full rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 transition-colors`
 
 interface Props {
   transfers: Transfer[]
@@ -62,8 +61,8 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Inter-Store Transfers</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{transfers.length} transfers</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Inter-Store Transfers</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{transfers.length} transfers</p>
         </div>
         <button
           onClick={() => setNewOpen(true)}
@@ -82,7 +81,7 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
 
       <div className="space-y-3">
         {transfers.length === 0 && (
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-12 text-center text-gray-500">
+          <div className="rounded-xl p-12 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             <ArrowLeftRight className="w-8 h-8 mx-auto mb-2 opacity-40" />
             No transfers yet.
           </div>
@@ -127,19 +126,18 @@ function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, se
   const [receiveOpen, setReceiveOpen] = useState(false)
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+    <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
       <div className="flex items-center justify-between px-5 py-4">
         <button onClick={onToggle} className="flex items-center gap-4 flex-1 text-left">
-          <span className="font-mono text-white font-semibold">{t.transferNumber}</span>
-          <span className="text-gray-400 text-sm">{t.sourceStore.name} → {t.destStore.name}</span>
+          <span className="font-mono font-semibold" style={{ color: 'var(--text-primary)' }}>{t.transferNumber}</span>
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t.sourceStore.name} → {t.destStore.name}</span>
           {expanded ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
         </button>
         <div className="flex items-center gap-3">
           <span className={cn('text-xs px-2 py-0.5 rounded-full border font-medium', statusColors[t.status])}>
             {t.status}
           </span>
-          <span className="text-xs text-gray-500">{formatDate(t.requestedAt)}</span>
-          {/* Action buttons — admin can approve/ship; dest manager can receive */}
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatDate(t.requestedAt)}</span>
           {t.status === 'REQUESTED' && isAdmin && (
             <ActionButton size="sm" variant="success" onClick={() => onApprove(t.id)}>
               Approve
@@ -159,15 +157,15 @@ function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, se
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-800 p-5 grid grid-cols-3 gap-2">
+        <div className="p-5 grid grid-cols-3 gap-2" style={{ borderTop: '1px solid var(--border)' }}>
           {t.items.map(item => (
-            <div key={item.id} className="bg-gray-800 rounded-lg p-3 text-xs">
-              <p className="font-medium text-white truncate">{item.product.name}</p>
-              <p className="text-gray-400 mt-1 space-x-1">
-                <span>Req: <span className="text-white">{item.quantityRequested}</span></span>
+            <div key={item.id} className="rounded-lg p-3 text-xs" style={{ background: 'var(--bg-elevated)' }}>
+              <p className="font-medium truncate" style={{ color: 'var(--text-primary)' }}>{item.product.name}</p>
+              <p className="mt-1 space-x-1" style={{ color: 'var(--text-secondary)' }}>
+                <span>Req: <span style={{ color: 'var(--text-primary)' }}>{item.quantityRequested}</span></span>
                 {item.quantityShipped != null && <span>· Ship: <span className="text-amber-400">{item.quantityShipped}</span></span>}
                 {item.quantityReceived != null && <span>· Rcv: <span className="text-green-400">{item.quantityReceived}</span></span>}
-                <span className="text-gray-600">({item.product.unit})</span>
+                <span style={{ color: 'var(--text-muted)' }}>({item.product.unit})</span>
               </p>
             </div>
           ))}
@@ -221,19 +219,20 @@ function ShipForm({ transfer, onDone, setError }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-gray-400">Confirm quantities to ship from <strong className="text-white">{transfer.sourceStore.name}</strong>.</p>
+      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Confirm quantities to ship from <strong style={{ color: 'var(--text-primary)' }}>{transfer.sourceStore.name}</strong>.</p>
       <div className="space-y-2">
         {transfer.items.map(item => (
-          <div key={item.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3">
+          <div key={item.id} className="flex items-center justify-between rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
             <div>
-              <p className="text-sm text-white">{item.product.name}</p>
-              <p className="text-xs text-gray-500">Requested: {item.quantityRequested} {item.product.unit}</p>
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{item.product.name}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Requested: {item.quantityRequested} {item.product.unit}</p>
             </div>
             <input
               type="number" min="0" max={item.quantityRequested}
               value={qtys[item.id] ?? item.quantityRequested}
               onChange={e => setQtys(q => ({ ...q, [item.id]: parseInt(e.target.value) || 0 }))}
-              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-right text-white outline-none focus:border-amber-500"
+              className="w-24 rounded-lg px-3 py-1.5 text-sm text-right outline-none focus:border-amber-500"
+              style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           </div>
         ))}
@@ -272,19 +271,20 @@ function ReceiveForm({ transfer, onDone, setError }: {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-gray-400">Confirm quantities received at <strong className="text-white">{transfer.destStore.name}</strong>.</p>
+      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Confirm quantities received at <strong style={{ color: 'var(--text-primary)' }}>{transfer.destStore.name}</strong>.</p>
       <div className="space-y-2">
         {transfer.items.map(item => (
-          <div key={item.id} className="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3">
+          <div key={item.id} className="flex items-center justify-between rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
             <div>
-              <p className="text-sm text-white">{item.product.name}</p>
-              <p className="text-xs text-gray-500">Shipped: {item.quantityShipped ?? '—'} {item.product.unit}</p>
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{item.product.name}</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Shipped: {item.quantityShipped ?? '—'} {item.product.unit}</p>
             </div>
             <input
               type="number" min="0" max={item.quantityShipped ?? item.quantityRequested}
               value={qtys[item.id] ?? (item.quantityShipped ?? item.quantityRequested)}
               onChange={e => setQtys(q => ({ ...q, [item.id]: parseInt(e.target.value) || 0 }))}
-              className="w-24 bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-right text-white outline-none focus:border-amber-500"
+              className="w-24 rounded-lg px-3 py-1.5 text-sm text-right outline-none focus:border-amber-500"
+              style={{ background: 'var(--bg-muted)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           </div>
         ))}
@@ -326,28 +326,30 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">From Store *</label>
+          <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>From Store *</label>
           {defaultSourceStoreId ? (
             <>
               <input type="hidden" name="sourceStoreId" value={defaultSourceStoreId} />
-              <div className={`${inputCls} text-gray-300 cursor-not-allowed opacity-70`}>
+              <div className={`${inputCls} cursor-not-allowed opacity-70`} style={inputStyle}>
                 {stores.find(s => s.id === defaultSourceStoreId)?.name ?? 'Your store'}
               </div>
             </>
           ) : (
-            <select name="sourceStoreId" required className={inputCls}>
+            <select name="sourceStoreId" required className={inputCls} style={inputStyle}>
               <option value="">Select source…</option>
               {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           )}
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">To Store *</label>
-          <select name="destStoreId" required className={inputCls}>
+          <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>To Store *</label>
+          <select name="destStoreId" required className={inputCls} style={inputStyle}>
             <option value="">Select destination…</option>
             {stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -356,7 +358,7 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">Products</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Products</p>
           <button type="button" onClick={() => setLines(ls => [...ls, { productId: '', qty: 1 }])}
             className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
             + Add line
@@ -368,6 +370,7 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
               value={line.productId}
               onChange={e => setLines(ls => ls.map((l, j) => j === i ? { ...l, productId: e.target.value } : l))}
               className={`${inputCls} flex-1`}
+              style={inputStyle}
             >
               <option value="">Select product…</option>
               {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
@@ -375,7 +378,8 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
             <input
               type="number" min="1" value={line.qty}
               onChange={e => setLines(ls => ls.map((l, j) => j === i ? { ...l, qty: parseInt(e.target.value) || 1 } : l))}
-              className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-amber-500"
+              className="w-24 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500"
+              style={inputStyle}
             />
             {lines.length > 1 && (
               <button type="button" onClick={() => setLines(ls => ls.filter((_, j) => j !== i))}
@@ -386,8 +390,8 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
       </div>
 
       <div>
-        <label className="block text-xs text-gray-500 mb-1">Notes</label>
-        <input name="notes" className={inputCls} placeholder="Optional notes…" />
+        <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Notes</label>
+        <input name="notes" className={inputCls} placeholder="Optional notes…" style={inputStyle} />
       </div>
 
       {err && <p className="text-sm text-red-400">{err}</p>}

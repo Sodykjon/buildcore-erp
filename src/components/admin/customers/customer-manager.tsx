@@ -16,9 +16,8 @@ type Customer  = {
   createdAt: string; loyaltyTxs: LoyaltyTx[]
 }
 
-const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
-const labelCls = 'block text-xs text-gray-500 mb-1'
+const inputCls = `w-full rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 transition-colors`
+const labelCls = 'block text-xs mb-1'
 
 export function CustomerManager({ customers: initial }: { customers: Customer[] }) {
   const [customers, setCustomers]   = useState(initial)
@@ -50,8 +49,8 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Customers</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{visible.length} customers</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Customers</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{visible.length} customers</p>
         </div>
         <div className="flex items-center gap-3">
           <input
@@ -59,16 +58,15 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
             placeholder="Name or phone…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                       text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 w-48"
+            className="rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 w-48"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
           />
           <button
             onClick={() => setShowInactive(v => !v)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              showInactive
-                ? 'bg-gray-600/20 text-gray-300 border-gray-600/30'
-                : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'
-            }`}
+            className="px-3 py-2 rounded-lg text-sm font-medium border transition-colors"
+            style={showInactive
+              ? { background: 'var(--bg-muted)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+              : { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
           >
             {showInactive ? 'Show Active' : 'Show Inactive'}
           </button>
@@ -88,10 +86,10 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
         </div>
       )}
 
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+            <tr className="text-xs uppercase tracking-wider" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               <th className="text-left px-4 py-3 font-medium">Name</th>
               <th className="text-left px-4 py-3 font-medium">Phone</th>
               <th className="text-left px-4 py-3 font-medium">Email</th>
@@ -101,17 +99,17 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
               <th className="px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody>
             {visible.map(c => (
-              <tr key={c.id} className={`hover:bg-gray-800/40 transition-colors ${!c.isActive ? 'opacity-50' : ''}`}>
-                <td className="px-4 py-3 font-medium text-white">{c.fullName}</td>
-                <td className="px-4 py-3 text-gray-400 font-mono text-xs">{c.phone}</td>
-                <td className="px-4 py-3 text-gray-400">{c.email ?? '—'}</td>
+              <tr key={c.id} className={`transition-colors hover:bg-gray-800/40 ${!c.isActive ? 'opacity-50' : ''}`} style={{ borderBottom: '1px solid var(--border)' }}>
+                <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>{c.fullName}</td>
+                <td className="px-4 py-3 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>{c.phone}</td>
+                <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{c.email ?? '—'}</td>
                 <td className="px-4 py-3 text-right">
                   <span className="text-amber-400 font-mono font-semibold">{c.loyaltyPoints}</span>
                 </td>
-                <td className="px-4 py-3 text-right text-gray-300">{c.orderCount}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(c.createdAt)}</td>
+                <td className="px-4 py-3 text-right" style={{ color: 'var(--text-secondary)' }}>{c.orderCount}</td>
+                <td className="px-4 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>{formatDate(c.createdAt)}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 justify-end">
                     <button onClick={() => setLoyaltyTarget(c)}
@@ -133,7 +131,7 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   <Users className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   No customers found.
                 </td>
@@ -194,19 +192,22 @@ function CustomerForm({ customer, onDone, setError }: {
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelCls}>Full Name *</label>
-        <input name="fullName" required defaultValue={customer?.fullName} className={inputCls} placeholder="John Doe" />
+        <label className={labelCls} style={labelStyle}>Full Name *</label>
+        <input name="fullName" required defaultValue={customer?.fullName} className={inputCls} placeholder="John Doe" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Phone *</label>
-        <input name="phone" required defaultValue={customer?.phone} className={inputCls} placeholder="+1 555 000 0000" />
+        <label className={labelCls} style={labelStyle}>Phone *</label>
+        <input name="phone" required defaultValue={customer?.phone} className={inputCls} placeholder="+1 555 000 0000" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Email</label>
-        <input name="email" type="email" defaultValue={customer?.email ?? ''} className={inputCls} placeholder="john@email.com" />
+        <label className={labelCls} style={labelStyle}>Email</label>
+        <input name="email" type="email" defaultValue={customer?.email ?? ''} className={inputCls} placeholder="john@email.com" style={inputStyle} />
       </div>
       {err && <p className="text-sm text-red-400">{err}</p>}
       <button type="submit" disabled={pending}
@@ -250,7 +251,6 @@ function LoyaltyPanel({ customer, onDone, setError }: {
     EARN: 'bg-green-500/10', REDEEM: 'bg-amber-500/10', ADJUSTMENT: 'bg-blue-500/10',
   }
 
-  // compute running balance (txs are newest-first, reverse for running total)
   const txsOldFirst = [...customer.loyaltyTxs].reverse()
   let runningBalance = 0
   const txsWithBalance = txsOldFirst.map(tx => {
@@ -263,23 +263,26 @@ function LoyaltyPanel({ customer, onDone, setError }: {
   const totalEarned   = customer.loyaltyTxs.filter(t => t.points > 0).reduce((s, t) => s + t.points, 0)
   const totalRedeemed = customer.loyaltyTxs.filter(t => t.points < 0).reduce((s, t) => s + Math.abs(t.points), 0)
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <div className="space-y-4">
       {/* Balance header */}
       <div className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-xl px-5 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-400">{customer.fullName}</p>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{customer.fullName}</p>
             <p className="text-3xl font-bold text-amber-400 font-mono mt-1">{customer.loyaltyPoints} pts</p>
-            <p className="text-xs text-gray-500 mt-1">≈ ${(customer.loyaltyPoints * 0.01).toFixed(2)} value</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>≈ ${(customer.loyaltyPoints * 0.01).toFixed(2)} value</p>
           </div>
           <div className="text-right space-y-2">
             <div>
-              <p className="text-xs text-gray-500">Total Earned</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Total Earned</p>
               <p className="text-sm font-semibold text-green-400 font-mono">+{totalEarned}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-500">Total Redeemed</p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Total Redeemed</p>
               <p className="text-sm font-semibold text-amber-400 font-mono">−{totalRedeemed}</p>
             </div>
           </div>
@@ -287,7 +290,7 @@ function LoyaltyPanel({ customer, onDone, setError }: {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
+      <div className="flex gap-1 rounded-lg p-1" style={{ background: 'var(--bg-elevated)' }}>
         {(['history', 'adjust'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn('flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors',
@@ -301,12 +304,12 @@ function LoyaltyPanel({ customer, onDone, setError }: {
         <form onSubmit={handleAdjust} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelCls}>Points (+ to add, − to deduct)</label>
-              <input name="points" type="number" required className={inputCls} placeholder="e.g. 100 or -50" />
+              <label className={labelCls} style={labelStyle}>Points (+ to add, − to deduct)</label>
+              <input name="points" type="number" required className={inputCls} placeholder="e.g. 100 or -50" style={inputStyle} />
             </div>
             <div>
-              <label className={labelCls}>Note *</label>
-              <input name="note" required className={inputCls} placeholder="Reason for adjustment…" />
+              <label className={labelCls} style={labelStyle}>Note *</label>
+              <input name="note" required className={inputCls} placeholder="Reason for adjustment…" style={inputStyle} />
             </div>
           </div>
           {err && <p className="text-sm text-red-400">{err}</p>}
@@ -322,33 +325,33 @@ function LoyaltyPanel({ customer, onDone, setError }: {
           {txsWithBalance.length === 0 && (
             <div className="text-center py-8">
               <History className="w-8 h-8 mx-auto mb-2 text-gray-700" />
-              <p className="text-gray-500 text-sm">No loyalty transactions yet.</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No loyalty transactions yet.</p>
             </div>
           )}
           <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
             {visibleTxs.map(tx => (
-              <div key={tx.id} className={cn('rounded-lg px-3 py-2.5 text-xs', typeBg[tx.type] ?? 'bg-gray-800')}>
+              <div key={tx.id} className={cn('rounded-lg px-3 py-2.5 text-xs', typeBg[tx.type] ?? '')} style={!typeBg[tx.type] ? { background: 'var(--bg-elevated)' } : {}}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={cn('font-semibold text-xs px-1.5 py-0.5 rounded', typeColor[tx.type])}>
                       {tx.type}
                     </span>
-                    {tx.note && <span className="text-gray-400">{tx.note}</span>}
+                    {tx.note && <span style={{ color: 'var(--text-secondary)' }}>{tx.note}</span>}
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className={cn('font-mono font-bold', tx.points >= 0 ? 'text-green-400' : 'text-amber-400')}>
                       {tx.points >= 0 ? '+' : ''}{tx.points}
                     </span>
-                    <span className="text-gray-600 font-mono">= {tx.balance}</span>
+                    <span className="font-mono" style={{ color: 'var(--text-muted)' }}>= {tx.balance}</span>
                   </div>
                 </div>
-                <p className="text-gray-600 mt-1">{formatDate(tx.createdAt)}</p>
+                <p className="mt-1" style={{ color: 'var(--text-muted)' }}>{formatDate(tx.createdAt)}</p>
               </div>
             ))}
           </div>
           {txsWithBalance.length > 10 && (
             <button onClick={() => setShowAll(s => !s)}
-              className="w-full text-xs text-gray-500 hover:text-amber-400 transition-colors py-1">
+              className="w-full text-xs hover:text-amber-400 transition-colors py-1" style={{ color: 'var(--text-muted)' }}>
               {showAll ? 'Show less' : `Show all ${txsWithBalance.length} transactions`}
             </button>
           )}

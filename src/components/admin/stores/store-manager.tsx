@@ -10,9 +10,8 @@ type StoreRow = {
   staffCount: number; orderCount: number; skuCount: number; totalUnits: number
 }
 
-const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
-const labelCls = 'block text-xs text-gray-500 mb-1'
+const inputCls = `w-full rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 transition-colors`
+const labelCls = 'block text-xs mb-1'
 
 export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
   const [stores, setStores]           = useState(initial)
@@ -43,8 +42,8 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Stores</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{stores.length} locations</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Stores</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{stores.length} locations</p>
         </div>
         <button
           onClick={() => setAddOpen(true)}
@@ -63,16 +62,16 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
 
       <div className="grid grid-cols-2 gap-5">
         {stores.map(store => (
-          <div key={store.id} className="bg-gray-900 rounded-xl border border-gray-800 p-6 space-y-4">
+          <div key={store.id} className="rounded-xl p-6 space-y-4" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center shrink-0">
                   <Store className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-white text-lg">{store.name}</h2>
-                  <p className="text-sm text-gray-400">{store.address}</p>
-                  {store.phone && <p className="text-xs text-gray-500 mt-0.5">{store.phone}</p>}
+                  <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>{store.name}</h2>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{store.address}</p>
+                  {store.phone && <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{store.phone}</p>}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -96,13 +95,13 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
             <div className="grid grid-cols-4 gap-2">
               {[
                 { icon: Users,       value: store.staffCount, label: 'Staff',  color: 'text-blue-400' },
-                { icon: Package,     value: store.skuCount,   label: 'SKUs',   color: 'text-white' },
+                { icon: Package,     value: store.skuCount,   label: 'SKUs',   color: '' },
                 { icon: Package,     value: store.totalUnits, label: 'Units',  color: 'text-green-400' },
                 { icon: ShoppingCart,value: store.orderCount, label: 'Orders', color: 'text-amber-400' },
               ].map(({ icon: Icon, value, label, color }) => (
-                <div key={label} className="bg-gray-800 rounded-lg p-3 text-center">
-                  <p className={`text-xl font-bold ${color}`}>{value}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+                <div key={label} className="rounded-lg p-3 text-center" style={{ background: 'var(--bg-elevated)' }}>
+                  <p className={`text-xl font-bold ${color}`} style={!color ? { color: 'var(--text-primary)' } : {}}>{value}</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
                 </div>
               ))}
             </div>
@@ -110,7 +109,7 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
         ))}
 
         {stores.length === 0 && (
-          <div className="col-span-2 bg-gray-900 rounded-xl border border-gray-800 p-12 text-center text-gray-500">
+          <div className="col-span-2 rounded-xl p-12 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             No stores yet.
           </div>
         )}
@@ -137,8 +136,8 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
             <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
               <Trash2 className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-white font-medium">Delete &ldquo;{deleteTarget.name}&rdquo;?</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Delete &ldquo;{deleteTarget.name}&rdquo;?</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                   This will permanently remove the store and all its inventory records.
                   Orders and staff must be reassigned or removed first.
                 </p>
@@ -146,13 +145,13 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-sm text-center">
-              <div className="bg-gray-800 rounded-lg py-2">
-                <p className="font-bold text-white">{deleteTarget.staffCount}</p>
-                <p className="text-xs text-gray-500">Staff</p>
+              <div className="rounded-lg py-2" style={{ background: 'var(--bg-elevated)' }}>
+                <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{deleteTarget.staffCount}</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Staff</p>
               </div>
-              <div className="bg-gray-800 rounded-lg py-2">
-                <p className="font-bold text-white">{deleteTarget.orderCount}</p>
-                <p className="text-xs text-gray-500">Orders</p>
+              <div className="rounded-lg py-2" style={{ background: 'var(--bg-elevated)' }}>
+                <p className="font-bold" style={{ color: 'var(--text-primary)' }}>{deleteTarget.orderCount}</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Orders</p>
               </div>
             </div>
 
@@ -171,8 +170,8 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 rounded-lg border border-gray-700 text-sm text-gray-300
-                           hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2.5 rounded-lg text-sm transition-colors hover:bg-gray-800"
+                style={{ border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
               >
                 Cancel
               </button>
@@ -218,20 +217,23 @@ function StoreForm({ store, onDone, setError }: {
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className={labelCls}>Store Name *</label>
-        <input name="name" required defaultValue={store?.name} className={inputCls} placeholder="Northside Branch" />
+        <label className={labelCls} style={labelStyle}>Store Name *</label>
+        <input name="name" required defaultValue={store?.name} className={inputCls} placeholder="Northside Branch" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Address *</label>
+        <label className={labelCls} style={labelStyle}>Address *</label>
         <textarea name="address" required rows={2} defaultValue={store?.address}
-          className={`${inputCls} resize-none`} placeholder="123 Main St, City, Country" />
+          className={`${inputCls} resize-none`} placeholder="123 Main St, City, Country" style={inputStyle} />
       </div>
       <div>
-        <label className={labelCls}>Phone</label>
-        <input name="phone" defaultValue={store?.phone ?? ''} className={inputCls} placeholder="+1 555 000 0000" />
+        <label className={labelCls} style={labelStyle}>Phone</label>
+        <input name="phone" defaultValue={store?.phone ?? ''} className={inputCls} placeholder="+1 555 000 0000" style={inputStyle} />
       </div>
       {err && <p className="text-sm text-red-400">{err}</p>}
       <button type="submit" disabled={pending}

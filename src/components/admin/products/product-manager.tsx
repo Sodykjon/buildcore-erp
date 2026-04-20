@@ -24,9 +24,8 @@ interface Props {
   categories: Category[]
 }
 
-const inputCls = `w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-  text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 transition-colors`
-const labelCls = 'block text-xs text-gray-500 mb-1'
+const inputCls = `w-full rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 transition-colors`
+const labelCls = 'block text-xs mb-1'
 
 export function ProductManager({ products: initial, categories: initialCats }: Props) {
   const [products, setProducts] = useState(initial)
@@ -55,7 +54,6 @@ export function ProductManager({ products: initial, categories: initialCats }: P
       setError(null)
       await createProductAction(fd)
       setAddOpen(false)
-      // Refresh via router would revalidate; for now optimistic add not needed — page ISR handles it
       window.location.reload()
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error creating product')
@@ -124,8 +122,8 @@ export function ProductManager({ products: initial, categories: initialCats }: P
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Inventory</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{visible.length} products</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Inventory</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{visible.length} products</p>
         </div>
         <div className="flex items-center gap-3">
           <input
@@ -133,37 +131,37 @@ export function ProductManager({ products: initial, categories: initialCats }: P
             placeholder="Search products…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                       text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500 w-52"
+            className="rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-500 w-52"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
           />
           <button
             onClick={() => setShowArchived(a => !a)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-              showArchived
-                ? 'bg-gray-600/20 text-gray-300 border-gray-600/30'
-                : 'bg-gray-800 text-gray-400 border-gray-700 hover:text-white'
-            }`}
+            className="px-3 py-2 rounded-lg text-sm font-medium border transition-colors"
+            style={showArchived
+              ? { background: 'var(--bg-muted)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }
+              : { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
           >
             {showArchived ? 'Show Active' : 'Show Archived'}
           </button>
           <button
             onClick={() => setCatOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                       bg-gray-800 text-gray-400 border border-gray-700 hover:text-white transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:text-white"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
           >
             <Tag className="w-3.5 h-3.5" /> Categories
           </button>
           <a
             href="/api/products/import/template"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                       bg-gray-800 text-gray-400 border border-gray-700 hover:text-white transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:text-white"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
             title="Download CSV template"
           >
             <Download className="w-3.5 h-3.5" /> Template
           </a>
-          <label className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                       bg-gray-800 border border-gray-700 transition-colors cursor-pointer
-                       ${importing ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-white'}`}>
+          <label
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: importing ? 'var(--text-muted)' : 'var(--text-secondary)' }}
+          >
             <Upload className="w-3.5 h-3.5" />
             {importing ? 'Importing…' : 'Import CSV'}
             <input
@@ -205,10 +203,10 @@ export function ProductManager({ products: initial, categories: initialCats }: P
       )}
 
       {/* Table */}
-      <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+      <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+            <tr className="text-xs uppercase tracking-wider" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
               <th className="text-left px-4 py-3 font-medium">Product</th>
               <th className="text-left px-4 py-3 font-medium">Category</th>
               <th className="text-left px-4 py-3 font-medium">Barcode</th>
@@ -219,26 +217,26 @@ export function ProductManager({ products: initial, categories: initialCats }: P
               <th className="px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody>
             {visible.map(product => {
               const totalStock = product.inventory.reduce((s, i) => s + i.quantityOnHand, 0)
-              const isLow = false // simplified — threshold check omitted here
+              const isLow = false
               return (
-                <tr key={product.id} className={`hover:bg-gray-800/40 transition-colors ${!product.isActive ? 'opacity-50' : ''}`}>
+                <tr key={product.id} className={`transition-colors hover:bg-gray-800/40 ${!product.isActive ? 'opacity-50' : ''}`} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-white">{product.name}</p>
-                    <p className="text-xs text-gray-500">{product.sku}</p>
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{product.name}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{product.sku}</p>
                   </td>
-                  <td className="px-4 py-3 text-gray-400">{product.category.name}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-400">{product.barcode}</td>
-                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(product.costPrice)}</td>
-                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(product.sellPrice)}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{product.category.name}</td>
+                  <td className="px-4 py-3 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>{product.barcode}</td>
+                  <td className="px-4 py-3 text-right" style={{ color: 'var(--text-secondary)' }}>{formatCurrency(product.costPrice)}</td>
+                  <td className="px-4 py-3 text-right" style={{ color: 'var(--text-secondary)' }}>{formatCurrency(product.sellPrice)}</td>
                   <td className="px-4 py-3 text-right">
                     <span className={`font-mono font-semibold ${isLow ? 'text-red-400' : 'text-green-400'}`}>
                       {totalStock}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400">{product.unit}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{product.unit}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 justify-end">
                       <Link
@@ -275,7 +273,7 @@ export function ProductManager({ products: initial, categories: initialCats }: P
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={8} className="px-4 py-12 text-center" style={{ color: 'var(--text-muted)' }}>
                   <Package className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   No products found.
                 </td>
@@ -317,7 +315,6 @@ export function ProductManager({ products: initial, categories: initialCats }: P
 // ── Barcode generation (EAN-13) ───────────────────────────────────────────────
 
 function generateShortCode(): string {
-  // 6-digit numeric code, easy to type at POS
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 
@@ -348,27 +345,32 @@ function ProductForm({
     })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+  const labelStyle = { color: 'var(--text-muted)' }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {product && <input type="hidden" name="id" value={product.id} />}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>SKU *</label>
+          <label className={`${labelCls}`} style={labelStyle}>SKU *</label>
           <input name="sku" required defaultValue={product?.sku} disabled={!!product}
-            className={`${inputCls} ${product ? 'opacity-50' : ''}`} placeholder="PROD-001" />
+            className={`${inputCls} ${product ? 'opacity-50' : ''}`} placeholder="PROD-001"
+            style={inputStyle} />
         </div>
         <div>
-          <label className={labelCls}>Barcode *</label>
+          <label className={labelCls} style={labelStyle}>Barcode *</label>
           <div className="flex gap-1.5">
             <input name="barcode" required value={barcode} onChange={e => setBarcode(e.target.value)}
-              className={`${inputCls} flex-1 font-mono`} placeholder="e.g. 482910" />
+              className={`${inputCls} flex-1 font-mono`} placeholder="e.g. 482910"
+              style={inputStyle} />
             <button
               type="button"
               onClick={() => setBarcode(generateShortCode())}
               title="Generate EAN-13 barcode"
-              className="px-2.5 rounded-lg border border-gray-700 bg-gray-800 text-gray-400
-                         hover:text-amber-400 hover:border-amber-500 transition-colors shrink-0"
+              className="px-2.5 rounded-lg hover:text-amber-400 hover:border-amber-500 transition-colors shrink-0"
+              style={{ border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -377,43 +379,43 @@ function ProductForm({
       </div>
 
       <div>
-        <label className={labelCls}>Product Name *</label>
+        <label className={labelCls} style={labelStyle}>Product Name *</label>
         <input name="name" required defaultValue={product?.name}
-          className={inputCls} placeholder="Portland Cement 50kg" />
+          className={inputCls} placeholder="Portland Cement 50kg" style={inputStyle} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>Category *</label>
-          <select name="categoryId" required defaultValue={product?.category.id} className={inputCls}>
+          <label className={labelCls} style={labelStyle}>Category *</label>
+          <select name="categoryId" required defaultValue={product?.category.id} className={inputCls} style={inputStyle}>
             <option value="">Select category…</option>
             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         <div>
-          <label className={labelCls}>Unit *</label>
+          <label className={labelCls} style={labelStyle}>Unit *</label>
           <input name="unit" required defaultValue={product?.unit}
-            className={inputCls} placeholder="bag, kg, m, piece…" />
+            className={inputCls} placeholder="bag, kg, m, piece…" style={inputStyle} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className={labelCls}>Cost Price *</label>
+          <label className={labelCls} style={labelStyle}>Cost Price *</label>
           <input name="costPrice" type="number" step="0.01" min="0" required
-            defaultValue={product?.costPrice} className={inputCls} placeholder="0.00" />
+            defaultValue={product?.costPrice} className={inputCls} placeholder="0.00" style={inputStyle} />
         </div>
         <div>
-          <label className={labelCls}>Sell Price *</label>
+          <label className={labelCls} style={labelStyle}>Sell Price *</label>
           <input name="sellPrice" type="number" step="0.01" min="0" required
-            defaultValue={product?.sellPrice} className={inputCls} placeholder="0.00" />
+            defaultValue={product?.sellPrice} className={inputCls} placeholder="0.00" style={inputStyle} />
         </div>
       </div>
 
       <div>
-        <label className={labelCls}>Description</label>
+        <label className={labelCls} style={labelStyle}>Description</label>
         <textarea name="description" rows={2} defaultValue={product?.description ?? ''}
-          className={`${inputCls} resize-none`} placeholder="Optional description…" />
+          className={`${inputCls} resize-none`} placeholder="Optional description…" style={inputStyle} />
       </div>
 
       {err && <p className="text-sm text-red-400">{err}</p>}
@@ -448,11 +450,13 @@ function CategoryManager({
     startTrans(async () => { await onAdd(fd); (e.target as HTMLFormElement).reset() })
   }
 
+  const inputStyle = { background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
+
   return (
     <div className="space-y-4">
       <form onSubmit={handleAdd} className="flex gap-2">
         <input name="name" required placeholder="New category name"
-          className={`${inputCls} flex-1`} />
+          className={`${inputCls} flex-1`} style={inputStyle} />
         <button type="submit" disabled={pending}
           className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-950 text-sm font-bold transition-all disabled:opacity-50">
           Add
@@ -461,14 +465,14 @@ function CategoryManager({
 
       <div className="space-y-1 max-h-64 overflow-y-auto">
         {categories.map(c => (
-          <div key={c.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800">
-            <span className="text-sm text-gray-200">{c.name}</span>
+          <div key={c.id} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
+            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{c.name}</span>
             <ActionButton variant="danger" size="sm" onClick={() => onDelete(c.id)}>
               Remove
             </ActionButton>
           </div>
         ))}
-        {categories.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No categories yet.</p>}
+        {categories.length === 0 && <p className="text-sm text-center py-4" style={{ color: 'var(--text-muted)' }}>No categories yet.</p>}
       </div>
     </div>
   )
