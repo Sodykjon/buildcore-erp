@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/modal'
 import { ActionButton } from '@/components/ui/action-button'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { createDeliveryAction, updateDeliveryStatusAction } from '@/app/actions/delivery'
+import { toast } from 'sonner'
 
 type PendingOrder = {
   id: string; orderNumber: string; totalAmount: number; createdAt: string
@@ -45,7 +46,6 @@ export function DeliveryManager({ deliveries: initial, pendingOrders }: {
   const [deliveries, setDeliveries] = useState(initial)
   const [dispatchOpen, setDispatchOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
-  const [error, setError]   = useState<string | null>(null)
   const [, startTrans]      = useTransition()
 
   const visible = deliveries.filter(d => !statusFilter || d.status === statusFilter)
@@ -55,8 +55,9 @@ export function DeliveryManager({ deliveries: initial, pendingOrders }: {
       try {
         await createDeliveryAction(fd)
         setDispatchOpen(false)
+        toast.success('Delivery dispatched')
         window.location.reload()
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error creating delivery') }
     })
   }
 
@@ -66,7 +67,9 @@ export function DeliveryManager({ deliveries: initial, pendingOrders }: {
       try {
         await updateDeliveryStatusAction(id, status, notes)
         setDeliveries(ds => ds.map(d => d.id === id ? { ...d, status } : d))
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+        const label: Record<string, string> = { OUT_FOR_DELIVERY: 'Out for delivery', DELIVERED: 'Delivered', FAILED: 'Marked as failed' }
+        toast.success(label[status] ?? 'Status updated')
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error updating status') }
     })
   }
 
@@ -92,8 +95,6 @@ export function DeliveryManager({ deliveries: initial, pendingOrders }: {
           </button>
         </div>
       </div>
-
-      {error && <p className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">{error}</p>}
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">

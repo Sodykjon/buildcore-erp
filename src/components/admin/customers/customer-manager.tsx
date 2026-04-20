@@ -8,6 +8,7 @@ import {
   createCustomerAction, updateCustomerAction,
   deactivateCustomerAction, adjustLoyaltyAction,
 } from '@/app/actions/customers'
+import { toast } from 'sonner'
 
 type LoyaltyTx = { id: string; type: string; points: number; note: string | null; createdAt: string }
 type Customer  = {
@@ -26,7 +27,6 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
   const [addOpen, setAddOpen]       = useState(false)
   const [editTarget, setEditTarget] = useState<Customer | null>(null)
   const [loyaltyTarget, setLoyaltyTarget] = useState<Customer | null>(null)
-  const [error, setError]           = useState<string | null>(null)
   const [, startTrans]              = useTransition()
 
   function reload() { window.location.reload() }
@@ -40,8 +40,13 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
 
   async function handleToggleActive(c: Customer) {
     startTrans(async () => {
-      await deactivateCustomerAction(c.id, !c.isActive)
-      setCustomers(cs => cs.map(x => x.id === c.id ? { ...x, isActive: !c.isActive } : x))
+      try {
+        await deactivateCustomerAction(c.id, !c.isActive)
+        setCustomers(cs => cs.map(x => x.id === c.id ? { ...x, isActive: !c.isActive } : x))
+        toast.success(c.isActive ? 'Customer deactivated' : 'Customer activated')
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Error')
+      }
     })
   }
 
@@ -79,12 +84,6 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
           </button>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
@@ -142,12 +141,12 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add Customer" size="sm">
-        <CustomerForm onDone={() => { setAddOpen(false); reload() }} setError={setError} />
+        <CustomerForm onDone={() => { setAddOpen(false); reload() }} />
       </Modal>
 
       <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Customer" size="sm">
         {editTarget && (
-          <CustomerForm customer={editTarget} onDone={() => { setEditTarget(null); reload() }} setError={setError} />
+          <CustomerForm customer={editTarget} onDone={() => { setEditTarget(null); reload() }} />
         )}
       </Modal>
 
@@ -156,7 +155,6 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
           <LoyaltyPanel
             customer={loyaltyTarget}
             onDone={() => { setLoyaltyTarget(null); reload() }}
-            setError={setError}
           />
         )}
       </Modal>
@@ -166,8 +164,8 @@ export function CustomerManager({ customers: initial }: { customers: Customer[] 
 
 // ── Customer form ─────────────────────────────────────────────────────────────
 
-function CustomerForm({ customer, onDone, setError }: {
-  customer?: Customer; onDone: () => void; setError: (e: string | null) => void
+function CustomerForm({ customer, onDone }: {
+  customer?: Customer; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [err, setErr]         = useState<string | null>(null)
@@ -181,13 +179,15 @@ function CustomerForm({ customer, onDone, setError }: {
         if (customer) {
           fd.set('id', customer.id)
           await updateCustomerAction(fd)
+          toast.success('Customer updated')
         } else {
           await createCustomerAction(fd)
+          toast.success('Customer created')
         }
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }
@@ -220,8 +220,8 @@ function CustomerForm({ customer, onDone, setError }: {
 
 // ── Loyalty panel ─────────────────────────────────────────────────────────────
 
-function LoyaltyPanel({ customer, onDone, setError }: {
-  customer: Customer; onDone: () => void; setError: (e: string | null) => void
+function LoyaltyPanel({ customer, onDone }: {
+  customer: Customer; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [err, setErr]         = useState<string | null>(null)
@@ -236,10 +236,11 @@ function LoyaltyPanel({ customer, onDone, setError }: {
       try {
         setErr(null)
         await adjustLoyaltyAction(fd)
+        toast.success('Loyalty points adjusted')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }

@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/modal'
 import { ActionButton } from '@/components/ui/action-button'
 import { formatDate, cn } from '@/lib/utils'
 import { approveWorkOrderAction, rejectWorkOrderAction } from '@/app/actions/work-orders'
+import { toast } from 'sonner'
 
 type Product  = { id: string; name: string; sku: string; unit: string }
 type WOItem   = { id: string; productId: string; quantity: number; note: string | null; product: Product }
@@ -36,7 +37,6 @@ export function AdminWorkOrderManager({ workOrders: initial }: { workOrders: Wor
   const [orders]      = useState(initial)
   const [expanded, setExpanded]     = useState<string | null>(null)
   const [rejectTarget, setRejectTarget] = useState<WorkOrder | null>(null)
-  const [error, setError]           = useState<string | null>(null)
   const [, startTrans]              = useTransition()
 
   function reload() { window.location.reload() }
@@ -45,8 +45,9 @@ export function AdminWorkOrderManager({ workOrders: initial }: { workOrders: Wor
     startTrans(async () => {
       try {
         await approveWorkOrderAction(id)
+        toast.success('Work order approved')
         reload()
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error approving work order') }
     })
   }
 
@@ -60,11 +61,7 @@ export function AdminWorkOrderManager({ workOrders: initial }: { workOrders: Wor
         <p className="text-sm text-gray-400 mt-0.5">Review and approve inventory change requests</p>
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+
 
       {submitted.length > 0 && (
         <section>
@@ -99,7 +96,7 @@ export function AdminWorkOrderManager({ workOrders: initial }: { workOrders: Wor
 
       <Modal open={!!rejectTarget} onClose={() => setRejectTarget(null)} title="Reject Work Order" size="md">
         {rejectTarget && (
-          <RejectForm wo={rejectTarget} onDone={() => { setRejectTarget(null); reload() }} setError={setError} />
+          <RejectForm wo={rejectTarget} onDone={() => { setRejectTarget(null); reload() }} />
         )}
       </Modal>
     </div>
@@ -177,8 +174,8 @@ function WOCard({ wo, expanded, setExpanded, onApprove, onReject }: {
   )
 }
 
-function RejectForm({ wo, onDone, setError }: {
-  wo: WorkOrder; onDone: () => void; setError: (e: string | null) => void
+function RejectForm({ wo, onDone }: {
+  wo: WorkOrder; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [note, setNote]       = useState('')
@@ -194,10 +191,11 @@ function RejectForm({ wo, onDone, setError }: {
       try {
         setErr(null)
         await rejectWorkOrderAction(fd)
+        toast.success('Work order rejected')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }

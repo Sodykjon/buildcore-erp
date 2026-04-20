@@ -10,6 +10,7 @@ import {
   createCategoryAction, deleteCategoryAction,
 } from '@/app/actions/products'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 type Category = { id: string; name: string }
 type Product = {
@@ -32,7 +33,6 @@ export function ProductManager({ products: initial, categories: initialCats }: P
   const [categories, setCategories] = useState(initialCats)
   const [showArchived, setShowArchived] = useState(false)
   const [search, setSearch] = useState('')
-  const [error, setError] = useState<string | null>(null)
 
   // Modals
   const [addOpen, setAddOpen]   = useState(false)
@@ -51,30 +51,35 @@ export function ProductManager({ products: initial, categories: initialCats }: P
 
   async function handleCreate(fd: FormData) {
     try {
-      setError(null)
       await createProductAction(fd)
       setAddOpen(false)
+      toast.success('Product created')
       window.location.reload()
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error creating product')
+      toast.error(e instanceof Error ? e.message : 'Error creating product')
     }
   }
 
   async function handleUpdate(fd: FormData) {
     try {
-      setError(null)
       await updateProductAction(fd)
       setEditTarget(null)
+      toast.success('Product updated')
       window.location.reload()
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error updating product')
+      toast.error(e instanceof Error ? e.message : 'Error updating product')
     }
   }
 
   async function handleArchive(id: string, archive: boolean) {
     startTrans(async () => {
-      await archiveProductAction(id, archive)
-      setProducts(ps => ps.map(p => p.id === id ? { ...p, isActive: !archive } : p))
+      try {
+        await archiveProductAction(id, archive)
+        setProducts(ps => ps.map(p => p.id === id ? { ...p, isActive: !archive } : p))
+        toast.success(archive ? 'Product archived' : 'Product restored')
+      } catch (e: unknown) {
+        toast.error(e instanceof Error ? e.message : 'Error')
+      }
     })
   }
 
@@ -82,8 +87,9 @@ export function ProductManager({ products: initial, categories: initialCats }: P
     try {
       const cat = await createCategoryAction(fd)
       setCategories(cs => [...cs, cat].sort((a, b) => a.name.localeCompare(b.name)))
+      toast.success('Category added')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error')
+      toast.error(e instanceof Error ? e.message : 'Error adding category')
     }
   }
 
@@ -91,8 +97,9 @@ export function ProductManager({ products: initial, categories: initialCats }: P
     try {
       await deleteCategoryAction(id)
       setCategories(cs => cs.filter(c => c.id !== id))
+      toast.success('Category removed')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Error')
+      toast.error(e instanceof Error ? e.message : 'Error removing category')
     }
   }
 
@@ -108,9 +115,12 @@ export function ProductManager({ products: initial, categories: initialCats }: P
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Import failed')
       setImportResult(data)
-      if (data.created > 0 || data.updated > 0) window.location.reload()
+      if (data.created > 0 || data.updated > 0) {
+        toast.success(`Import complete — ${data.created} created, ${data.updated} updated`)
+        window.location.reload()
+      }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Import failed')
+      toast.error(e instanceof Error ? e.message : 'Import failed')
     } finally {
       setImporting(false)
       if (importRef.current) importRef.current.value = ''
@@ -182,12 +192,6 @@ export function ProductManager({ products: initial, categories: initialCats }: P
           </button>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       {importResult && (
         <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 text-sm space-y-1">

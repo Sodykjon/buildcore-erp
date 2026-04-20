@@ -5,6 +5,7 @@ import { Users, Plus, Pencil, KeyRound, Trash2, Shield, ShieldCheck, User } from
 import { Modal } from '@/components/ui/modal'
 import { ActionButton } from '@/components/ui/action-button'
 import { createUserAction, updateUserAction, resetUserPasswordAction, deleteUserAction } from '@/app/actions/users'
+import { toast } from 'sonner'
 
 type Store   = { id: string; name: string }
 type Profile = { id: string; email: string; fullName: string; role: string; storeId: string | null; store: Store | null }
@@ -24,7 +25,6 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
   const [addOpen, setAddOpen]   = useState(false)
   const [editTarget, setEditTarget] = useState<Profile | null>(null)
   const [pwTarget, setPwTarget]     = useState<Profile | null>(null)
-  const [error, setError]           = useState<string | null>(null)
   const [, startTrans]              = useTransition()
 
   function reload() { window.location.reload() }
@@ -35,7 +35,8 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
       try {
         await deleteUserAction(id)
         setProfiles(ps => ps.filter(p => p.id !== id))
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+        toast.success('User deleted')
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error deleting user') }
     })
   }
 
@@ -54,12 +55,6 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
           <Plus className="w-4 h-4" /> Add User
         </button>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">
@@ -118,20 +113,20 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add User" size="md">
-        <UserForm stores={stores} onDone={() => { setAddOpen(false); reload() }} setError={setError} />
+        <UserForm stores={stores} onDone={() => { setAddOpen(false); reload() }} />
       </Modal>
 
       <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit User" size="md">
         {editTarget && (
           <EditUserForm profile={editTarget} stores={stores}
-            onDone={() => { setEditTarget(null); reload() }} setError={setError} />
+            onDone={() => { setEditTarget(null); reload() }} />
         )}
       </Modal>
 
       <Modal open={!!pwTarget} onClose={() => setPwTarget(null)} title="Reset Password" size="sm">
         {pwTarget && (
           <ResetPasswordForm profile={pwTarget}
-            onDone={() => setPwTarget(null)} setError={setError} />
+            onDone={() => setPwTarget(null)} />
         )}
       </Modal>
     </div>
@@ -140,8 +135,8 @@ export function UserManager({ profiles: initial, stores }: { profiles: Profile[]
 
 // ── Create user form ──────────────────────────────────────────────────────────
 
-function UserForm({ stores, onDone, setError }: {
-  stores: Store[]; onDone: () => void; setError: (e: string | null) => void
+function UserForm({ stores, onDone }: {
+  stores: Store[]; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [role, setRole]       = useState('STAFF')
@@ -154,10 +149,11 @@ function UserForm({ stores, onDone, setError }: {
       try {
         setErr(null)
         await createUserAction(fd)
+        toast.success('User created')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }
@@ -205,8 +201,8 @@ function UserForm({ stores, onDone, setError }: {
   )
 }
 
-function EditUserForm({ profile, stores, onDone, setError }: {
-  profile: Profile; stores: Store[]; onDone: () => void; setError: (e: string | null) => void
+function EditUserForm({ profile, stores, onDone }: {
+  profile: Profile; stores: Store[]; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [role, setRole]       = useState(profile.role)
@@ -220,10 +216,11 @@ function EditUserForm({ profile, stores, onDone, setError }: {
       try {
         setErr(null)
         await updateUserAction(fd)
+        toast.success('User updated')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }
@@ -264,8 +261,8 @@ function EditUserForm({ profile, stores, onDone, setError }: {
   )
 }
 
-function ResetPasswordForm({ profile, onDone, setError }: {
-  profile: Profile; onDone: () => void; setError: (e: string | null) => void
+function ResetPasswordForm({ profile, onDone }: {
+  profile: Profile; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [err, setErr]         = useState<string | null>(null)
@@ -278,10 +275,11 @@ function ResetPasswordForm({ profile, onDone, setError }: {
       try {
         setErr(null)
         await resetUserPasswordAction(fd)
+        toast.success('Password reset')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }

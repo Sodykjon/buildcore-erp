@@ -27,6 +27,16 @@
   --accent-fg:   #ffffff;
 }
 
+/* ── Page transition animation ───────────────────────────────── */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: page-in 0.2s ease-out forwards;
+}
+
 /* ── Thermal Label: 2×1 inch @ 203 DPI ───────────────────────── */
 @media print {
   body > *:not(.thermal-print-area) { display: none !important; }

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Warehouse, ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import { adjustInventoryAction, updateLowStockThresholdAction } from '@/app/actions/inventory'
 import { Modal } from '@/components/ui/modal'
+import { toast } from 'sonner'
 
 type StoreRow = { storeId: string; storeName: string; onHand: number; reserved: number; threshold: number }
 type ProductRow = {
@@ -17,7 +18,6 @@ export function StockManager({ products }: { products: ProductRow[] }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [adjustTarget, setAdjustTarget] = useState<{ product: ProductRow; store: StoreRow } | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
   const visible = products.filter(p =>
     search === '' ||
@@ -42,11 +42,7 @@ export function StockManager({ products }: { products: ProductRow[] }) {
         />
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
+
 
       <div className="space-y-2">
         {visible.map(product => {
@@ -85,7 +81,6 @@ export function StockManager({ products }: { products: ProductRow[] }) {
                         product={product}
                         store={store}
                         onAdjust={() => setAdjustTarget({ product, store })}
-                        setError={setError}
                       />
                     ))}
                   </div>
@@ -115,7 +110,6 @@ export function StockManager({ products }: { products: ProductRow[] }) {
             product={adjustTarget.product}
             store={adjustTarget.store}
             onDone={() => { setAdjustTarget(null); window.location.reload() }}
-            setError={setError}
           />
         )}
       </Modal>
@@ -126,12 +120,11 @@ export function StockManager({ products }: { products: ProductRow[] }) {
 // ── Per-store row ─────────────────────────────────────────────────────────────
 
 function StoreInventoryRow({
-  product, store, onAdjust, setError,
+  product, store, onAdjust,
 }: {
   product: ProductRow
   store: StoreRow
   onAdjust: () => void
-  setError: (e: string | null) => void
 }) {
   const available = store.onHand - store.reserved
   const isLow = store.onHand <= store.threshold
@@ -161,12 +154,11 @@ function StoreInventoryRow({
 // ── Adjust Form ───────────────────────────────────────────────────────────────
 
 function AdjustForm({
-  product, store, onDone, setError,
+  product, store, onDone,
 }: {
   product: ProductRow
   store: StoreRow
   onDone: () => void
-  setError: (e: string | null) => void
 }) {
   const [type, setType] = useState<'add' | 'set' | 'remove'>('add')
   const [pending, startTrans] = useTransition()
@@ -183,11 +175,12 @@ function AdjustForm({
       try {
         setLocalErr(null)
         await adjustInventoryAction(fd)
+        toast.success('Stock adjusted')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
         setLocalErr(msg)
-        setError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -200,9 +193,11 @@ function AdjustForm({
     startTrans(async () => {
       try {
         await updateLowStockThresholdAction(fd)
+        toast.success('Threshold updated')
         onDone()
       } catch (ex: unknown) {
         setLocalErr(ex instanceof Error ? ex.message : 'Error')
+        toast.error(ex instanceof Error ? ex.message : 'Error updating threshold')
       }
     })
   }

@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/modal'
 import { ActionButton } from '@/components/ui/action-button'
 import { cancelOrderAction, refundOrderAction } from '@/app/actions/orders'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 type OrderItem = {
   id: string; productName: string; unit: string; unitPrice: number
@@ -39,7 +40,6 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
   const [detailOrder, setDetailOrder] = useState<Order | null>(null)
   const [search, setSearch]       = useState(currentSearch ?? '')
   const [statusFilter, setStatus] = useState(currentStatus ?? '')
-  const [error, setError]         = useState<string | null>(null)
   const [, startTrans]            = useTransition()
 
   const visible = orders.filter(o =>
@@ -55,19 +55,21 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
       try {
         await cancelOrderAction(orderId)
         setOrders(os => os.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+        toast.success('Order cancelled')
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error cancelling order') }
     })
   }
 
   async function handleRefund(orderId: string) {
     const reason = prompt('Reason for refund:')
     if (reason === null) return
-    if (!reason.trim()) { setError('Reason is required'); return }
+    if (!reason.trim()) { toast.error('Reason is required'); return }
     startTrans(async () => {
       try {
         await refundOrderAction(orderId, reason.trim())
         setOrders(os => os.map(o => o.id === orderId ? { ...o, status: 'REFUNDED' } : o))
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+        toast.success('Order refunded')
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error processing refund') }
     })
   }
 
@@ -98,12 +100,6 @@ export function OrdersManager({ orders: initial, currentStatus, currentSearch }:
           </select>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <table className="w-full text-sm">

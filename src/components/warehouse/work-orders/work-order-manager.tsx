@@ -8,6 +8,7 @@ import { formatDate, cn } from '@/lib/utils'
 import {
   createWorkOrderAction, submitWorkOrderAction, resubmitWorkOrderAction,
 } from '@/app/actions/work-orders'
+import { toast } from 'sonner'
 
 type Product = { id: string; name: string; sku: string; unit: string }
 type WOItem  = { id: string; productId: string; quantity: number; note: string | null; product: Product }
@@ -45,7 +46,6 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
   const [newOpen, setNewOpen]     = useState(false)
   const [resubTarget, setResubTarget] = useState<WorkOrder | null>(null)
   const [expanded, setExpanded]   = useState<string | null>(null)
-  const [error, setError]         = useState<string | null>(null)
   const [, startTrans]            = useTransition()
 
   function reload() { window.location.reload() }
@@ -54,8 +54,9 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
     startTrans(async () => {
       try {
         await submitWorkOrderAction(id)
+        toast.success('Work order submitted for approval')
         reload()
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error submitting work order') }
     })
   }
 
@@ -74,12 +75,6 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
           <Plus className="w-4 h-4" /> New Work Order
         </button>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       <div className="space-y-3">
         {orders.length === 0 && (
@@ -163,7 +158,6 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
           products={products}
           storeId={storeId}
           onDone={() => { setNewOpen(false); reload() }}
-          setError={setError}
         />
       </Modal>
 
@@ -173,7 +167,6 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
             wo={resubTarget}
             products={products}
             onDone={() => { setResubTarget(null); reload() }}
-            setError={setError}
           />
         )}
       </Modal>
@@ -183,8 +176,8 @@ export function WorkOrderManager({ workOrders: initial, products, storeId }: Pro
 
 // ── New WO form ───────────────────────────────────────────────────────────────
 
-function WorkOrderForm({ products, storeId, onDone, setError }: {
-  products: Product[]; storeId: string; onDone: () => void; setError: (e: string | null) => void
+function WorkOrderForm({ products, storeId, onDone }: {
+  products: Product[]; storeId: string; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [lines, setLines]     = useState([{ productId: '', quantity: 1, note: '' }])
@@ -203,10 +196,11 @@ function WorkOrderForm({ products, storeId, onDone, setError }: {
       try {
         setErr(null)
         await createWorkOrderAction(fd)
+        toast.success('Work order created as draft')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }
@@ -273,8 +267,8 @@ function WorkOrderForm({ products, storeId, onDone, setError }: {
 
 // ── Resubmit form ─────────────────────────────────────────────────────────────
 
-function ResubmitForm({ wo, products, onDone, setError }: {
-  wo: WorkOrder; products: Product[]; onDone: () => void; setError: (e: string | null) => void
+function ResubmitForm({ wo, products, onDone }: {
+  wo: WorkOrder; products: Product[]; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [lines, setLines]     = useState(wo.items.map(i => ({ productId: i.productId, quantity: i.quantity, note: i.note ?? '' })))
@@ -293,10 +287,11 @@ function ResubmitForm({ wo, products, onDone, setError }: {
       try {
         setErr(null)
         await resubmitWorkOrderAction(fd)
+        toast.success('Work order resubmitted')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }

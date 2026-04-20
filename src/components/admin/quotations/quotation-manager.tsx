@@ -8,6 +8,7 @@ import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import {
   createQuotationAction, updateQuotationStatusAction, convertQuotationToOrderAction,
 } from '@/app/actions/quotations'
+import { toast } from 'sonner'
 
 type QItem = { id: string; productId: string; quantity: number; unitPrice: number; product: { name: string; unit: string; sellPrice: number } }
 type Quote = {
@@ -48,7 +49,6 @@ export function QuotationManager({ quotes: initial, stores, customers, products,
   const [detail, setDetail]         = useState<Quote | null>(null)
   const [statusFilter, setFilter]   = useState('')
   const [lines, setLines]           = useState<LineItem[]>([{ productId: '', quantity: 1, unitPrice: 0 }])
-  const [error, setError]           = useState<string | null>(null)
   const [, startTrans]              = useTransition()
 
   const visible = quotes.filter(q => !statusFilter || q.status === statusFilter)
@@ -75,8 +75,9 @@ export function QuotationManager({ quotes: initial, stores, customers, products,
         await createQuotationAction(fd)
         setNewOpen(false)
         setLines([{ productId: '', quantity: 1, unitPrice: 0 }])
+        toast.success('Quotation created')
         window.location.reload()
-      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+      } catch (ex: unknown) { toast.error(ex instanceof Error ? ex.message : 'Error creating quotation') }
     })
   }
 
@@ -86,7 +87,8 @@ export function QuotationManager({ quotes: initial, stores, customers, products,
         await updateQuotationStatusAction(id, status)
         setQuotes(qs => qs.map(q => q.id === id ? { ...q, status } : q))
         if (detail?.id === id) setDetail(d => d ? { ...d, status } : d)
-      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+        toast.success('Status updated')
+      } catch (ex: unknown) { toast.error(ex instanceof Error ? ex.message : 'Error') }
     })
   }
 
@@ -97,8 +99,9 @@ export function QuotationManager({ quotes: initial, stores, customers, products,
         await convertQuotationToOrderAction(id)
         setQuotes(qs => qs.map(q => q.id === id ? { ...q, status: 'CONVERTED' } : q))
         setDetail(null)
+        toast.success('Quote converted to order')
         window.location.reload()
-      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+      } catch (ex: unknown) { toast.error(ex instanceof Error ? ex.message : 'Error converting quote') }
     })
   }
 
@@ -124,8 +127,6 @@ export function QuotationManager({ quotes: initial, stores, customers, products,
           </button>
         </div>
       </div>
-
-      {error && <p className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">{error}</p>}
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Store, Plus, Pencil, Trash2, Users, ShoppingCart, Package } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { createStoreAction, updateStoreAction, deleteStoreAction } from '@/app/actions/stores'
+import { toast } from 'sonner'
 
 type StoreRow = {
   id: string; name: string; address: string; phone: string | null
@@ -18,7 +19,6 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
   const [addOpen, setAddOpen]         = useState(false)
   const [editTarget, setEditTarget]   = useState<StoreRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<StoreRow | null>(null)
-  const [error, setError]             = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleting, startDelete]       = useTransition()
 
@@ -32,8 +32,11 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
         await deleteStoreAction(deleteTarget.id)
         setStores(s => s.filter(x => x.id !== deleteTarget.id))
         setDeleteTarget(null)
+        toast.success('Store deleted')
       } catch (e) {
-        setDeleteError(e instanceof Error ? e.message : 'Failed to delete store')
+        const msg = e instanceof Error ? e.message : 'Failed to delete store'
+        setDeleteError(msg)
+        toast.error(msg)
       }
     })
   }
@@ -53,12 +56,6 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
           <Plus className="w-4 h-4" /> Add Store
         </button>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
 
       <div className="grid grid-cols-2 gap-5">
         {stores.map(store => (
@@ -116,7 +113,7 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
       </div>
 
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add Store" size="md">
-        <StoreForm onDone={() => { setAddOpen(false); reload() }} setError={setError} />
+        <StoreForm onDone={() => { setAddOpen(false); reload() }} />
       </Modal>
 
       <Modal open={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Store" size="md">
@@ -124,7 +121,6 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
           <StoreForm
             store={editTarget}
             onDone={() => { setEditTarget(null); reload() }}
-            setError={setError}
           />
         )}
       </Modal>
@@ -191,8 +187,8 @@ export function StoreManager({ stores: initial }: { stores: StoreRow[] }) {
   )
 }
 
-function StoreForm({ store, onDone, setError }: {
-  store?: StoreRow; onDone: () => void; setError: (e: string | null) => void
+function StoreForm({ store, onDone }: {
+  store?: StoreRow; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [err, setErr]         = useState<string | null>(null)
@@ -206,13 +202,15 @@ function StoreForm({ store, onDone, setError }: {
         if (store) {
           fd.set('id', store.id)
           await updateStoreAction(fd)
+          toast.success('Store updated')
         } else {
           await createStoreAction(fd)
+          toast.success('Store created')
         }
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }

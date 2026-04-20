@@ -10,6 +10,7 @@ import {
   createPurchaseOrderAction, submitPurchaseOrderAction,
   receivePurchaseOrderAction, cancelPurchaseOrderAction,
 } from '@/app/actions/purchase-orders'
+import { toast } from 'sonner'
 
 type Supplier = { id: string; name: string; contact: string | null; phone: string | null; email: string | null; address: string | null }
 type Product  = { id: string; name: string; sku: string; unit: string; costPrice: number }
@@ -48,23 +49,22 @@ export function PurchaseOrderManager({ pos: initial, suppliers: initSuppliers, p
   const [supplierOpen, setSupplierOpen] = useState(false)
   const [editSupplier, setEditSupplier] = useState<Supplier | null>(null)
   const [tab, setTab]               = useState<'pos' | 'suppliers'>('pos')
-  const [error, setError]           = useState<string | null>(null)
   const [, startTrans]              = useTransition()
 
   function reload() { window.location.reload() }
 
   function handleSubmitPO(id: string) {
     startTrans(async () => {
-      try { await submitPurchaseOrderAction(id); reload() }
-      catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      try { await submitPurchaseOrderAction(id); toast.success('PO submitted'); reload() }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error submitting PO') }
     })
   }
 
   function handleCancel(id: string) {
     if (!confirm('Cancel this purchase order?')) return
     startTrans(async () => {
-      try { await cancelPurchaseOrderAction(id); reload() }
-      catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      try { await cancelPurchaseOrderAction(id); toast.success('PO cancelled'); reload() }
+      catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error cancelling PO') }
     })
   }
 
@@ -88,10 +88,6 @@ export function PurchaseOrderManager({ pos: initial, suppliers: initSuppliers, p
           </button>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">{error}</div>
-      )}
 
       <div className="space-y-3">
         {pos.length === 0 && (
@@ -174,13 +170,13 @@ export function PurchaseOrderManager({ pos: initial, suppliers: initSuppliers, p
       {/* New PO modal */}
       <Modal open={newPOOpen} onClose={() => setNewPOOpen(false)} title="New Purchase Order" size="lg">
         <NewPOForm suppliers={suppliers} products={products} stores={stores}
-          onDone={() => { setNewPOOpen(false); reload() }} setError={setError} />
+          onDone={() => { setNewPOOpen(false); reload() }} />
       </Modal>
 
       {/* Receive modal */}
       <Modal open={!!receiveTarget} onClose={() => setReceive(null)} title="Receive Stock" size="md">
         {receiveTarget && (
-          <ReceiveForm po={receiveTarget} onDone={() => { setReceive(null); reload() }} setError={setError} />
+          <ReceiveForm po={receiveTarget} onDone={() => { setReceive(null); reload() }} />
         )}
       </Modal>
 
@@ -189,7 +185,7 @@ export function PurchaseOrderManager({ pos: initial, suppliers: initSuppliers, p
         title={editSupplier ? 'Edit Supplier' : 'Suppliers'} size="md">
         <SupplierPanel suppliers={suppliers} editTarget={editSupplier}
           setEditTarget={setEditSupplier}
-          onDone={() => { setSupplierOpen(false); reload() }} setError={setError} />
+          onDone={() => { setSupplierOpen(false); reload() }} />
       </Modal>
     </div>
   )
@@ -197,9 +193,9 @@ export function PurchaseOrderManager({ pos: initial, suppliers: initSuppliers, p
 
 // ── New PO Form ───────────────────────────────────────────────────────────────
 
-function NewPOForm({ suppliers, products, stores, onDone, setError }: {
+function NewPOForm({ suppliers, products, stores, onDone }: {
   suppliers: Supplier[]; products: Product[]; stores: Store[]
-  onDone: () => void; setError: (e: string | null) => void
+  onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [lines, setLines]     = useState([{ productId: '', quantityOrdered: 1, unitCost: '' }])
@@ -214,8 +210,8 @@ function NewPOForm({ suppliers, products, stores, onDone, setError }: {
     fd.set('items', JSON.stringify(items))
 
     startTrans(async () => {
-      try { setErr(null); await createPurchaseOrderAction(fd); onDone() }
-      catch (ex: unknown) { const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); setError(msg) }
+      try { setErr(null); await createPurchaseOrderAction(fd); toast.success('Purchase order created'); onDone() }
+      catch (ex: unknown) { const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); toast.error(msg) }
     })
   }
 
@@ -287,8 +283,8 @@ function NewPOForm({ suppliers, products, stores, onDone, setError }: {
 
 // ── Receive Form ──────────────────────────────────────────────────────────────
 
-function ReceiveForm({ po, onDone, setError }: {
-  po: PO; onDone: () => void; setError: (e: string | null) => void
+function ReceiveForm({ po, onDone }: {
+  po: PO; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [qtys, setQtys] = useState<Record<string, number>>(
@@ -308,8 +304,8 @@ function ReceiveForm({ po, onDone, setError }: {
     fd.set('items', JSON.stringify(items))
 
     startTrans(async () => {
-      try { setErr(null); await receivePurchaseOrderAction(fd); onDone() }
-      catch (ex: unknown) { const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); setError(msg) }
+      try { setErr(null); await receivePurchaseOrderAction(fd); toast.success('Stock received'); onDone() }
+      catch (ex: unknown) { const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); toast.error(msg) }
     })
   }
 
@@ -353,10 +349,10 @@ function ReceiveForm({ po, onDone, setError }: {
 
 // ── Supplier Panel ────────────────────────────────────────────────────────────
 
-function SupplierPanel({ suppliers, editTarget, setEditTarget, onDone, setError }: {
+function SupplierPanel({ suppliers, editTarget, setEditTarget, onDone }: {
   suppliers: Supplier[]; editTarget: Supplier | null
   setEditTarget: (s: Supplier | null) => void
-  onDone: () => void; setError: (e: string | null) => void
+  onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [showForm, setShowForm] = useState(false)
@@ -370,11 +366,11 @@ function SupplierPanel({ suppliers, editTarget, setEditTarget, onDone, setError 
     startTrans(async () => {
       try {
         setErr(null)
-        if (editTarget) await updateSupplierAction(fd)
-        else await createSupplierAction(fd)
+        if (editTarget) { await updateSupplierAction(fd); toast.success('Supplier updated') }
+        else { await createSupplierAction(fd); toast.success('Supplier created') }
         onDone()
       } catch (ex: unknown) {
-        const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); setError(msg)
+        const msg = ex instanceof Error ? ex.message : 'Error'; setErr(msg); toast.error(msg)
       }
     })
   }

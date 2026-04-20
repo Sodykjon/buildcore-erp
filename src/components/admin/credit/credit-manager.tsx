@@ -8,6 +8,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import {
   createCreditAccountAction, recordCreditPaymentAction, toggleCreditAccountAction,
 } from '@/app/actions/credit'
+import { toast } from 'sonner'
 
 type CreditTx = { id: string; type: string; amount: number; note: string | null; createdAt: string }
 type Account = {
@@ -29,7 +30,6 @@ export function CreditManager({ accounts: initial, customers }: {
   const [addOpen, setAddOpen]   = useState(false)
   const [payTarget, setPayTarget] = useState<Account | null>(null)
   const [detail, setDetail]     = useState<Account | null>(null)
-  const [error, setError]       = useState<string | null>(null)
   const [, startTrans]          = useTransition()
 
   async function handleCreate(fd: FormData) {
@@ -37,8 +37,9 @@ export function CreditManager({ accounts: initial, customers }: {
       try {
         await createCreditAccountAction(fd)
         setAddOpen(false)
+        toast.success('Credit account created')
         window.location.reload()
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error creating account') }
     })
   }
 
@@ -47,15 +48,19 @@ export function CreditManager({ accounts: initial, customers }: {
       try {
         await recordCreditPaymentAction(fd)
         setPayTarget(null)
+        toast.success('Payment recorded')
         window.location.reload()
-      } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error recording payment') }
     })
   }
 
   async function handleToggle(id: string, isActive: boolean) {
     startTrans(async () => {
-      await toggleCreditAccountAction(id, !isActive)
-      setAccounts(as => as.map(a => a.id === id ? { ...a, isActive: !isActive } : a))
+      try {
+        await toggleCreditAccountAction(id, !isActive)
+        setAccounts(as => as.map(a => a.id === id ? { ...a, isActive: !isActive } : a))
+        toast.success(isActive ? 'Account deactivated' : 'Account activated')
+      } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error') }
     })
   }
 
@@ -72,8 +77,6 @@ export function CreditManager({ accounts: initial, customers }: {
           <Plus className="w-4 h-4" /> New Account
         </button>
       </div>
-
-      {error && <p className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">{error}</p>}
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <table className="w-full text-sm">

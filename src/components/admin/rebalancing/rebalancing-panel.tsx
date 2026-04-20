@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { ArrowRight, RefreshCw, CheckCircle2, Shuffle } from 'lucide-react'
 import { requestTransferAction } from '@/app/actions/transfers'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 type Suggestion = {
   productId:    string
@@ -48,8 +49,11 @@ export function RebalancingPanel({ suggestions, stores, products }: Props) {
         fd.set('items', JSON.stringify([{ productId: s.productId, quantityRequested: s.suggestedQty }]))
         await requestTransferAction(fd)
         setCreated(prev => new Set(prev).add(k))
+        toast.success(`Transfer created: ${s.productName}`)
       } catch (e) {
-        setErrors(prev => ({ ...prev, [k]: e instanceof Error ? e.message : 'Error' }))
+        const msg = e instanceof Error ? e.message : 'Error'
+        setErrors(prev => ({ ...prev, [k]: msg }))
+        toast.error(msg)
       }
     })
   }

@@ -9,6 +9,7 @@ import {
   approveTransferAction, shipTransferAction,
   receiveTransferAction, requestTransferAction,
 } from '@/app/actions/transfers'
+import { toast } from 'sonner'
 
 type Store   = { id: string; name: string }
 type Product = { id: string; name: string; sku: string; unit: string }
@@ -45,7 +46,6 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
   const [transfers, setTransfers] = useState(initial)
   const [expanded, setExpanded]   = useState<string | null>(null)
   const [newOpen, setNewOpen]     = useState(false)
-  const [error, setError]         = useState<string | null>(null)
   const [, startTrans]            = useTransition()
 
   function reload() { window.location.reload() }
@@ -54,7 +54,8 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
     try {
       await approveTransferAction(transferId)
       setTransfers(ts => ts.map(t => t.id === transferId ? { ...t, status: 'APPROVED' } : t))
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : 'Error') }
+      toast.success('Transfer approved')
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : 'Error approving transfer') }
   }
 
   return (
@@ -73,12 +74,6 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2 text-sm text-red-400">
-          {error}
-        </div>
-      )}
-
       <div className="space-y-3">
         {transfers.length === 0 && (
           <div className="rounded-xl p-12 text-center" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
@@ -94,7 +89,6 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
             onToggle={() => setExpanded(expanded === t.id ? null : t.id)}
             onApprove={handleApprove}
             onReload={reload}
-            setError={setError}
             isAdmin={isAdmin}
             myStoreId={storeId}
           />
@@ -107,7 +101,6 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
           products={products}
           defaultSourceStoreId={storeId}
           onDone={() => { setNewOpen(false); reload() }}
-          setError={setError}
         />
       </Modal>
     </div>
@@ -116,10 +109,10 @@ export function TransferManager({ transfers: initial, stores, products, isAdmin 
 
 // ── Transfer Card ─────────────────────────────────────────────────────────────
 
-function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, setError, isAdmin, myStoreId }: {
+function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, isAdmin, myStoreId }: {
   transfer: Transfer; expanded: boolean
   onToggle: () => void; onApprove: (id: string) => Promise<void>
-  onReload: () => void; setError: (e: string | null) => void
+  onReload: () => void
   isAdmin?: boolean; myStoreId?: string
 }) {
   const [shipOpen, setShipOpen]       = useState(false)
@@ -177,7 +170,6 @@ function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, se
         <ShipForm
           transfer={t}
           onDone={() => { setShipOpen(false); onReload() }}
-          setError={setError}
         />
       </Modal>
 
@@ -186,7 +178,6 @@ function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, se
         <ReceiveForm
           transfer={t}
           onDone={() => { setReceiveOpen(false); onReload() }}
-          setError={setError}
         />
       </Modal>
     </div>
@@ -195,8 +186,8 @@ function TransferCard({ transfer: t, expanded, onToggle, onApprove, onReload, se
 
 // ── Ship Form ─────────────────────────────────────────────────────────────────
 
-function ShipForm({ transfer, onDone, setError }: {
-  transfer: Transfer; onDone: () => void; setError: (e: string | null) => void
+function ShipForm({ transfer, onDone }: {
+  transfer: Transfer; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [qtys, setQtys]       = useState<Record<string, number>>(
@@ -212,8 +203,9 @@ function ShipForm({ transfer, onDone, setError }: {
     startTrans(async () => {
       try {
         await shipTransferAction(fd)
+        toast.success('Transfer shipped')
         onDone()
-      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+      } catch (ex: unknown) { toast.error(ex instanceof Error ? ex.message : 'Error shipping transfer') }
     })
   }
 
@@ -247,8 +239,8 @@ function ShipForm({ transfer, onDone, setError }: {
 
 // ── Receive Form ──────────────────────────────────────────────────────────────
 
-function ReceiveForm({ transfer, onDone, setError }: {
-  transfer: Transfer; onDone: () => void; setError: (e: string | null) => void
+function ReceiveForm({ transfer, onDone }: {
+  transfer: Transfer; onDone: () => void
 }) {
   const [pending, startTrans] = useTransition()
   const [qtys, setQtys]       = useState<Record<string, number>>(
@@ -264,8 +256,9 @@ function ReceiveForm({ transfer, onDone, setError }: {
     startTrans(async () => {
       try {
         await receiveTransferAction(fd)
+        toast.success('Transfer received')
         onDone()
-      } catch (ex: unknown) { setError(ex instanceof Error ? ex.message : 'Error') }
+      } catch (ex: unknown) { toast.error(ex instanceof Error ? ex.message : 'Error receiving transfer') }
     })
   }
 
@@ -299,9 +292,9 @@ function ReceiveForm({ transfer, onDone, setError }: {
 
 // ── New Transfer Form ─────────────────────────────────────────────────────────
 
-function NewTransferForm({ stores, products, onDone, setError, defaultSourceStoreId }: {
+function NewTransferForm({ stores, products, onDone, defaultSourceStoreId }: {
   stores: Store[]; products: Product[]
-  onDone: () => void; setError: (e: string | null) => void
+  onDone: () => void
   defaultSourceStoreId?: string
 }) {
   const [pending, startTrans] = useTransition()
@@ -318,10 +311,11 @@ function NewTransferForm({ stores, products, onDone, setError, defaultSourceStor
       try {
         setErr(null)
         await requestTransferAction(fd)
+        toast.success('Transfer request submitted')
         onDone()
       } catch (ex: unknown) {
         const msg = ex instanceof Error ? ex.message : 'Error'
-        setErr(msg); setError(msg)
+        setErr(msg); toast.error(msg)
       }
     })
   }
