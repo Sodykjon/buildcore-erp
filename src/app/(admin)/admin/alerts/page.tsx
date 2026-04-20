@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AlertInbox } from '@/components/admin/alerts/alert-inbox'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function AlertsPage() {
   const profile = await getServerProfile()

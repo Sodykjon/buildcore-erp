@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { UserManager } from '@/components/admin/users/user-manager'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function UsersPage() {
   const [profiles, stores] = await Promise.all([

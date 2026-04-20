@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { TransferManager } from '@/components/admin/transfers/transfer-manager'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function TransfersPage() {
   const [transfers, stores, products] = await Promise.all([

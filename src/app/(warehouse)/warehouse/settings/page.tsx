@@ -2,7 +2,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { SettingsPanel } from '@/components/admin/settings/settings-panel'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function WarehouseSettingsPage() {
   const profile = await getServerProfile()

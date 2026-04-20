@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { DeliveryManager } from '@/components/admin/delivery/delivery-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function DeliveryPage() {
   const profile = await getServerProfile()

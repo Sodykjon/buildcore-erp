@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { AuditLogViewer } from '@/components/admin/audit/audit-log-viewer'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function AuditPage({
   searchParams,

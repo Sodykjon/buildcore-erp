@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { OrdersManager } from '@/components/admin/orders/orders-manager'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function OrdersPage({
   searchParams,

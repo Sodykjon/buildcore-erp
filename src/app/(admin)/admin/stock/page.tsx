@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { StockManager } from '@/components/admin/inventory/stock-manager'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function StockPage() {
   const products = await prisma.product.findMany({

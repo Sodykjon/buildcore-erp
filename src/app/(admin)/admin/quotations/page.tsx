@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { QuotationManager } from '@/components/admin/quotations/quotation-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function QuotationsPage() {
   const profile = await getServerProfile()

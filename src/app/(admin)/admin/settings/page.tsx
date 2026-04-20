@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getSystemConfig } from '@/app/actions/settings'
 import { SettingsPanel } from '@/components/admin/settings/settings-panel'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function SettingsPage() {
   const profile = await getServerProfile()

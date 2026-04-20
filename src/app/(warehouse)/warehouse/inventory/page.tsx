@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { StockManager } from '@/components/admin/inventory/stock-manager'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function WarehouseInventoryPage() {
   const profile = await getServerProfile()

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { ProductManager } from '@/components/admin/products/product-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function InventoryPage() {
   const [products, categories] = await Promise.all([

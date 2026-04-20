@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { PurchaseOrderManager } from '@/components/admin/purchase-orders/purchase-order-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function PurchaseOrdersPage() {
   const profile = await getServerProfile()

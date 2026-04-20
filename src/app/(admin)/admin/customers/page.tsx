@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { CustomerManager } from '@/components/admin/customers/customer-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function CustomersPage() {
   const customers = await prisma.customer.findMany({

@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { WorkOrderManager } from '@/components/warehouse/work-orders/work-order-manager'
 
-export const revalidate = 0
+export const revalidate = 30
 
 export default async function WorkOrdersPage() {
   const profile = await getServerProfile()

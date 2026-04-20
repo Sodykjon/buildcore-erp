@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { ReportsDashboard } from '@/components/admin/reports/reports-dashboard'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function ReportsPage({
   searchParams,

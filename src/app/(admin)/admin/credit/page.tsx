@@ -3,7 +3,7 @@ import { getServerProfile } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { CreditManager } from '@/components/admin/credit/credit-manager'
 
-export const revalidate = 0
+export const revalidate = 60
 
 export default async function CreditPage() {
   const profile = await getServerProfile()

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { StoreManager } from '@/components/admin/stores/store-manager'
 
-export const revalidate = 0
+export const revalidate = 300
 
 export default async function StoresPage() {
   const stores = await prisma.store.findMany({
