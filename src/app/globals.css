@@ -1,5 +1,32 @@
 @import "tailwindcss";
 
+/* ── Theme Variables ─────────────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg-base:     #030712; /* gray-950 */
+  --bg-surface:  #111827; /* gray-900 */
+  --bg-elevated: #1f2937; /* gray-800 */
+  --bg-muted:    #374151; /* gray-700 */
+  --border:      #1f2937; /* gray-800 */
+  --text-primary:   #f9fafb; /* gray-50  */
+  --text-secondary: #9ca3af; /* gray-400 */
+  --text-muted:     #6b7280; /* gray-500 */
+  --accent:      #f59e0b; /* amber-500 */
+  --accent-fg:   #030712; /* gray-950  */
+}
+
+[data-theme="light"] {
+  --bg-base:     #f9fafb; /* gray-50  */
+  --bg-surface:  #ffffff; /* white    */
+  --bg-elevated: #f3f4f6; /* gray-100 */
+  --bg-muted:    #e5e7eb; /* gray-200 */
+  --border:      #e5e7eb; /* gray-200 */
+  --text-primary:   #111827; /* gray-900 */
+  --text-secondary: #6b7280; /* gray-500 */
+  --text-muted:     #9ca3af; /* gray-400 */
+  --accent:      #d97706; /* amber-600 */
+  --accent-fg:   #ffffff;
+}
+
 /* ── Thermal Label: 2×1 inch @ 203 DPI ───────────────────────── */
 @media print {
   body > *:not(.thermal-print-area) { display: none !important; }

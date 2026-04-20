@@ -10,9 +10,9 @@ export function StoreStockCard({ store }: { store: StoreWithInventory }) {
   )
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 space-y-3">
+    <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
       <div className="flex items-start justify-between">
-        <h3 className="font-semibold text-white text-sm leading-tight">{store.name}</h3>
+        <h3 className="font-semibold text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>{store.name}</h3>
         {criticalItems.length > 0 && (
           <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full">
             {criticalItems.length} low
@@ -23,7 +23,7 @@ export function StoreStockCard({ store }: { store: StoreWithInventory }) {
       <div className="space-y-1.5">
         {criticalItems.slice(0, 4).map(inv => (
           <div key={inv.id} className="flex items-center justify-between text-xs">
-            <span className="text-gray-400 truncate max-w-[100px]">{inv.product.name}</span>
+            <span className="truncate max-w-[100px]" style={{ color: 'var(--text-secondary)' }}>{inv.product.name}</span>
             <span className="text-red-400 font-mono font-medium">{inv.quantityOnHand}</span>
           </div>
         ))}
@@ -32,7 +32,7 @@ export function StoreStockCard({ store }: { store: StoreWithInventory }) {
         )}
       </div>
 
-      <p className="text-xs text-gray-600 border-t border-gray-800 pt-2">
+      <p className="text-xs pt-2" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)' }}>
         {store.inventory.length} active SKUs
       </p>
     </div>

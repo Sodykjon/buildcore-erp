@@ -24,41 +24,41 @@ export function ActivityFeed({ orders, adjustments }: { orders: OrderEvent[]; ad
   ].sort((a, b) => b.ts.localeCompare(a.ts))
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 flex flex-col h-full">
-      <div className="p-4 border-b border-gray-800 shrink-0">
-        <h2 className="font-semibold text-white">Activity Feed</h2>
-        <p className="text-xs text-gray-500 mt-0.5">Orders & stock changes today</p>
+    <div className="rounded-xl flex flex-col h-full" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+      <div className="p-4 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Activity Feed</h2>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Orders & stock changes today</p>
       </div>
-      <div className="overflow-y-auto divide-y divide-gray-800/50 max-h-[520px]">
+      <div className="overflow-y-auto max-h-[520px]">
         {events.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-gray-500">No activity today yet.</p>
+          <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>No activity today yet.</p>
         )}
         {events.map(ev => {
           if (ev.kind === 'order') {
             const o = ev.data as OrderEvent
             return (
-              <div key={o.id} className="px-4 py-3">
+              <div key={o.id} className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-mono text-white">{o.orderNumber}</span>
-                  <span className={cn('text-xs font-medium', orderStatus[o.status] ?? 'text-gray-400')}>{o.status}</span>
+                  <span className="text-sm font-mono" style={{ color: 'var(--text-primary)' }}>{o.orderNumber}</span>
+                  <span className={cn('text-xs font-medium', orderStatus[o.status] ?? '')} style={!orderStatus[o.status] ? { color: 'var(--text-secondary)' } : {}}>{o.status}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">{o.customerName} · {o.storeName}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{formatDate(o.createdAt)} · {formatCurrency(o.totalAmount)}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{o.customerName} · {o.storeName}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{formatDate(o.createdAt)} · {formatCurrency(o.totalAmount)}</p>
               </div>
             )
           } else {
             const a = ev.data as AdjEvent
             const delta = a.after - a.before
             return (
-              <div key={a.id} className="px-4 py-3">
+              <div key={a.id} className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-white truncate max-w-[140px]">{a.productName}</span>
+                  <span className="text-sm truncate max-w-[140px]" style={{ color: 'var(--text-primary)' }}>{a.productName}</span>
                   <span className={cn('text-xs font-mono font-semibold', delta >= 0 ? 'text-green-400' : 'text-red-400')}>
                     {delta >= 0 ? '+' : ''}{delta}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">{a.storeName} · {a.before} → {a.after}</p>
-                <p className="text-xs text-gray-500 mt-0.5 truncate">{formatDate(a.createdAt)} · {a.reason}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{a.storeName} · {a.before} → {a.after}</p>
+                <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{formatDate(a.createdAt)} · {a.reason}</p>
               </div>
             )
           }

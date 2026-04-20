@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import type { GlobalStockRow } from '@/lib/inventory'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { useLang } from '@/i18n/context'
 
 export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
+  const { t } = useLang()
   const [search,   setSearch]   = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -14,17 +16,16 @@ export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
   )
 
   return (
-    <div className="bg-gray-900 rounded-xl border border-gray-800 flex flex-col">
-      <div className="p-4 border-b border-gray-800 flex items-center justify-between shrink-0">
-        <h2 className="font-semibold text-white">Global Stock</h2>
+    <div className="rounded-xl flex flex-col" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+      <div className="p-4 flex items-center justify-between shrink-0 flex-wrap gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
+        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t.inventory.globalStock}</h2>
         <input
           type="search"
-          placeholder="Search product or barcode…"
+          placeholder={`${t.inventory.searchProducts}`}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm
-                     text-gray-200 placeholder:text-gray-500 outline-none
-                     focus:border-amber-500 w-56 transition-colors"
+          className="rounded-lg px-3 py-1.5 text-sm outline-none transition-colors w-full sm:w-56"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
         />
       </div>
 
@@ -39,13 +40,13 @@ export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
           <col className="w-16" />
         </colgroup>
         <thead>
-          <tr className="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wider">
+          <tr className="text-xs uppercase tracking-wider" style={{ borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>
             <th className="px-4 py-3 font-medium" />
-            <th className="text-left px-4 py-3 font-medium">Product</th>
-            <th className="text-right px-4 py-3 font-medium">On Hand</th>
-            <th className="text-right px-4 py-3 font-medium">Reserved</th>
-            <th className="text-right px-4 py-3 font-medium text-green-400">Available</th>
-            <th className="text-left px-4 py-3 font-medium">Unit</th>
+            <th className="text-left px-4 py-3 font-medium">{t.products.productName}</th>
+            <th className="text-right px-4 py-3 font-medium">{t.inventory.quantityOnHand}</th>
+            <th className="text-right px-4 py-3 font-medium">{t.products.reserved}</th>
+            <th className="text-right px-4 py-3 font-medium text-green-400">{t.products.available}</th>
+            <th className="text-left px-4 py-3 font-medium">{t.common.unit}</th>
           </tr>
         </thead>
       </table>
@@ -61,24 +62,27 @@ export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
             <col className="w-24" />
             <col className="w-16" />
           </colgroup>
-          <tbody className="divide-y divide-gray-800/50">
+          <tbody>
             {filtered.map(row => (
               <>
                 <tr
                   key={row.productId}
                   onClick={() => setExpanded(expanded === row.productId ? null : row.productId)}
-                  className="hover:bg-gray-800/50 cursor-pointer transition-colors"
+                  className="cursor-pointer transition-colors"
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = ''}
                 >
-                  <td className="px-4 py-3 text-gray-500 w-8">
+                  <td className="px-4 py-3 w-8" style={{ color: 'var(--text-muted)' }}>
                     {expanded === row.productId
                       ? <ChevronDown className="w-4 h-4" />
                       : <ChevronRight className="w-4 h-4" />}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-white">{row.productName}</p>
-                    <p className="text-xs text-gray-500 font-mono">{row.barcode}</p>
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{row.productName}</p>
+                    <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{row.barcode}</p>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-gray-300">
+                  <td className="px-4 py-3 text-right font-mono" style={{ color: 'var(--text-secondary)' }}>
                     {row.totalOnHand.toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-amber-400">
@@ -87,19 +91,19 @@ export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
                   <td className="px-4 py-3 text-right font-mono font-semibold text-green-400">
                     {row.totalAvailable.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">{row.unit}</td>
+                  <td className="px-4 py-3" style={{ color: 'var(--text-secondary)' }}>{row.unit}</td>
                 </tr>
 
                 {expanded === row.productId && (
-                  <tr key={`${row.productId}-detail`} className="bg-gray-800/30">
+                  <tr key={`${row.productId}-detail`} style={{ background: 'var(--bg-elevated)' }}>
                     <td />
                     <td colSpan={5} className="px-4 py-3">
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {row.perStore.map(s => (
-                          <div key={s.storeId} className="bg-gray-800 rounded-lg p-3 text-xs space-y-1">
-                            <p className="font-medium text-gray-300 truncate">{s.storeName}</p>
-                            <p className="text-gray-500">On hand: <span className="text-white font-mono">{s.onHand}</span></p>
-                            <p className="text-gray-500">Available: <span className="text-green-400 font-mono">{s.available}</span></p>
+                          <div key={s.storeId} className="rounded-lg p-3 text-xs space-y-1" style={{ background: 'var(--bg-muted)' }}>
+                            <p className="font-medium truncate" style={{ color: 'var(--text-secondary)' }}>{s.storeName}</p>
+                            <p style={{ color: 'var(--text-muted)' }}>{t.products.onHand}: <span className="font-mono" style={{ color: 'var(--text-primary)' }}>{s.onHand}</span></p>
+                            <p style={{ color: 'var(--text-muted)' }}>{t.products.available}: <span className="font-mono text-green-400">{s.available}</span></p>
                           </div>
                         ))}
                       </div>
@@ -110,8 +114,8 @@ export function GlobalStockTable({ rows }: { rows: GlobalStockRow[] }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500 text-sm">
-                  {search ? 'No products match your search.' : 'No stock data yet.'}
+                <td colSpan={6} className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                  {search ? t.common.noResults : 'No stock data yet.'}
                 </td>
               </tr>
             )}

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { QueryProvider } from '@/components/providers/query-provider'
+import { AppProviders } from '@/components/providers/app-providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.className} bg-gray-950 text-gray-100 antialiased h-full`}>
-        <QueryProvider>{children}</QueryProvider>
+      <body className={`${inter.className} antialiased h-full`} style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   )

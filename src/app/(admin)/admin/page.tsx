@@ -71,14 +71,14 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Operations Dashboard</h1>
-        <p className="text-sm text-gray-400 mt-1">Live overview · {stores.length} stores</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Operations Dashboard</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>Live overview · {stores.length} stores</p>
       </div>
 
       {/* Today KPIs */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Today</p>
-        <div className="grid grid-cols-4 gap-4">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Today</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             label="Today's Revenue"
             value={formatCurrency(Number(todayRevenue._sum.totalAmount ?? 0))}
@@ -108,8 +108,8 @@ export default async function AdminDashboard() {
 
       {/* Network KPIs */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Network</p>
-        <div className="grid grid-cols-4 gap-4">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>Network</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             label="Open Orders"
             value={openOrders}
@@ -142,15 +142,15 @@ export default async function AdminDashboard() {
 
       {/* Per-store status */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Per-Store Status</h2>
-        <div className="grid grid-cols-5 gap-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--text-secondary)' }}>Per-Store Status</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {stores.map(store => <StoreStockCard key={store.id} store={store} />)}
         </div>
       </section>
 
       {/* Stock table + Activity */}
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <GlobalStockTable rows={globalStock} />
         </div>
         <ActivityFeed orders={recentOrders.map(o => ({

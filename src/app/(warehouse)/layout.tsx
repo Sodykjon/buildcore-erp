@@ -8,12 +8,12 @@ export default async function WarehouseLayout({ children }: { children: React.Re
   if (profile.role === 'STAFF') redirect('/pos')
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-950">
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-base)' }}>
       <WarehouseSidebar
         storeName={profile.store?.name ?? 'All Stores'}
         userName={profile.fullName}
       />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 lg:p-6 pt-16 lg:pt-6">
         {children}
       </main>
     </div>

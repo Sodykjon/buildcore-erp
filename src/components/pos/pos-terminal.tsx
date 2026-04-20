@@ -12,7 +12,8 @@ import { Barcode, Trash2, LogOut, History, FileText, Package, Users, ChevronDown
 import { createBrowserSupabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
+import { useLang } from '@/i18n/context'
 
 type ProductLookup = {
   productId: string; name: string; unit: string
@@ -37,6 +38,7 @@ function makeCartItem(data: ProductLookup): CartItem {
 
 export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
   const router = useRouter()
+  const { t } = useLang()
 
   async function handleLogout() {
     const supabase = createBrowserSupabase()
@@ -153,19 +155,16 @@ export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
     return (
       <div className="flex h-full">
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between shrink-0">
+          <div className="px-6 py-4 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex items-center gap-3">
-              <Barcode className="w-5 h-5 text-amber-400" />
-              <span className="font-semibold text-white">Point of Sale</span>
-              {storeName && <span className="text-xs text-gray-500">{storeName}</span>}
+              <Barcode className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t.pos.title}</span>
+              {storeName && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{storeName}</span>}
             </div>
-            <div className="flex items-center gap-4">
-              {userName && <span className="text-xs text-gray-600">{userName}</span>}
-              <button onClick={() => setShowHistory(false)}
-                className="flex items-center gap-1.5 text-sm text-amber-400 hover:text-amber-300 transition-colors">
-                ← Back to POS
-              </button>
-            </div>
+            <button onClick={() => setShowHistory(false)}
+              className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--accent)' }}>
+              ← {t.common.back}
+            </button>
           </div>
           <div className="flex-1 overflow-hidden">
             <OrderHistory storeId={storeId} onClose={() => setShowHistory(false)} />
@@ -176,54 +175,53 @@ export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full flex-col md:flex-row">
       {/* Left: cart */}
-      <div className="flex-1 flex flex-col border-r border-gray-800 min-w-0">
+      <div className="flex-1 flex flex-col min-w-0" style={{ borderRight: '1px solid var(--border)' }}>
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between shrink-0">
+        <div className="px-4 md:px-6 py-4 flex items-center justify-between shrink-0 flex-wrap gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-3">
-            <Barcode className="w-5 h-5 text-amber-400" />
-            <span className="font-semibold text-white">Point of Sale</span>
-            {storeName && <span className="text-xs text-gray-500">{storeName}</span>}
+            <Barcode className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t.pos.title}</span>
+            {storeName && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{storeName}</span>}
             <ScanFeedback state={scanState} barcode={lastScanned} />
           </div>
-          <div className="flex items-center gap-3">
-            {userName && <span className="text-xs text-gray-600">{userName}</span>}
+          <div className="flex items-center gap-3 flex-wrap">
+            {userName && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{userName}</span>}
             <button onClick={() => setShowHistory(true)}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-white transition-colors">
-              <History className="w-4 h-4" /> History
+              className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+              <History className="w-4 h-4" /> {t.pos.orderHistory}
             </button>
 
-            {/* Manage dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowManage(v => !v)}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-white transition-colors"
+                className="flex items-center gap-1.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}
               >
                 Manage <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showManage && 'rotate-180')} />
               </button>
               {showManage && (
                 <>
-                  {/* backdrop */}
                   <div className="fixed inset-0 z-10" onClick={() => setShowManage(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-20 w-52 bg-gray-900 border border-gray-700 rounded-xl shadow-xl overflow-hidden">
-                    <p className="px-3 py-2 text-[10px] text-gray-600 uppercase tracking-wider border-b border-gray-800">Quick links</p>
+                  <div className="absolute right-0 top-full mt-2 z-20 w-52 rounded-xl shadow-xl overflow-hidden"
+                       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+                    <p className="px-3 py-2 text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>Quick links</p>
                     <Link href="/admin/inventory" target="_blank"
                       onClick={() => setShowManage(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
-                      <Package className="w-4 h-4 text-amber-400" />
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+                      <Package className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                       <div>
-                        <p className="font-medium">Products</p>
-                        <p className="text-xs text-gray-500">Add or edit products</p>
+                        <p className="font-medium">{t.nav.inventory}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Add or edit products</p>
                       </div>
                     </Link>
                     <Link href="/admin/customers" target="_blank"
                       onClick={() => setShowManage(false)}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
-                      <Users className="w-4 h-4 text-amber-400" />
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors" style={{ color: 'var(--text-secondary)' }}>
+                      <Users className="w-4 h-4" style={{ color: 'var(--accent)' }} />
                       <div>
-                        <p className="font-medium">Customers</p>
-                        <p className="text-xs text-gray-500">Edit customer info</p>
+                        <p className="font-medium">{t.nav.customers}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Edit customer info</p>
                       </div>
                     </Link>
                   </div>
@@ -232,28 +230,27 @@ export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
             </div>
 
             <button onClick={clearCart}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-400 transition-colors">
-              <Trash2 className="w-4 h-4" /> Clear
+              className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400" style={{ color: 'var(--text-secondary)' }}>
+              <Trash2 className="w-4 h-4" /> {t.pos.clearCart}
             </button>
             <button onClick={handleLogout}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-400 transition-colors">
-              <LogOut className="w-4 h-4" /> Sign out
+              className="flex items-center gap-1.5 text-sm transition-colors hover:text-red-400" style={{ color: 'var(--text-secondary)' }}>
+              <LogOut className="w-4 h-4" /> {t.nav.signOut}
             </button>
           </div>
         </div>
 
         {/* Product search bar */}
-        <div className="px-6 pt-3 pb-2 border-b border-gray-800/60 shrink-0">
+        <div className="px-4 md:px-6 pt-3 pb-2 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <ProductSearch storeId={storeId} onAdd={addToCart} />
         </div>
 
         {/* Cart items */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-2">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <Barcode className="w-12 h-12 text-gray-700 mb-3" />
-              <p className="text-gray-500 text-sm">Scan a barcode or search for a product</p>
-              <p className="text-gray-600 text-xs mt-1">Scanner ready — no click needed</p>
+              <Barcode className="w-12 h-12 mb-3" style={{ color: 'var(--bg-muted)' }} />
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{t.pos.scanBarcode}</p>
             </div>
           ) : (
             cart.map(item => (
@@ -269,16 +266,16 @@ export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
         </div>
 
         {/* Footer: customer + notes + subtotal */}
-        <div className="border-t border-gray-800 px-6 py-4 space-y-3 shrink-0">
+        <div className="px-4 md:px-6 py-4 space-y-3 shrink-0" style={{ borderTop: '1px solid var(--border)' }}>
           <CustomerSearch onSelect={setCustomer} />
 
-          {/* Order notes toggle */}
           <button
             onClick={() => setShowNotes(s => !s)}
             className={cn(
               'flex items-center gap-2 text-xs transition-colors',
-              showNotes || notes ? 'text-amber-400' : 'text-gray-600 hover:text-gray-400'
+              showNotes || notes ? '' : ''
             )}
+            style={{ color: showNotes || notes ? 'var(--accent)' : 'var(--text-muted)' }}
           >
             <FileText className="w-3.5 h-3.5" />
             {notes ? `Note: ${notes.slice(0, 40)}${notes.length > 40 ? '…' : ''}` : 'Add order note'}
@@ -288,24 +285,23 @@ export function PosTerminal({ storeId, staffId, storeName, userName }: Props) {
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={2}
-              placeholder="Order note (e.g. delivery instructions, customer request…)"
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs
-                         text-gray-200 placeholder:text-gray-500 outline-none focus:border-amber-500
-                         transition-colors resize-none"
+              placeholder="Order note…"
+              className="w-full rounded-lg px-3 py-2 text-xs outline-none transition-colors resize-none"
+              style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           )}
 
           <div className="flex items-center justify-between text-lg font-semibold">
-            <span className="text-gray-400">Subtotal</span>
-            <span className="text-white font-mono">
-              ${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <span style={{ color: 'var(--text-secondary)' }}>{t.pos.subtotal}</span>
+            <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
+              {formatCurrency(subtotal)}
             </span>
           </div>
         </div>
       </div>
 
       {/* Right: payment */}
-      <div className="w-96 flex flex-col bg-gray-900 shrink-0">
+      <div className="w-full md:w-96 flex flex-col shrink-0" style={{ background: 'var(--bg-surface)' }}>
         <PaymentPanel
           cart={cart}
           storeId={storeId}

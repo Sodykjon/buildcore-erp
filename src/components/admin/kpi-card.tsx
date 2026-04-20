@@ -1,11 +1,10 @@
-import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 
 const accents = {
-  amber: 'border-amber-500/30 bg-amber-500/10 text-amber-400',
-  blue:  'border-blue-500/30  bg-blue-500/10  text-blue-400',
-  green: 'border-green-500/30 bg-green-500/10 text-green-400',
-  red:   'border-red-500/30   bg-red-500/10   text-red-400',
+  amber: { border: 'rgba(245,158,11,0.3)', bg: 'rgba(245,158,11,0.1)', text: '#f59e0b' },
+  blue:  { border: 'rgba(59,130,246,0.3)',  bg: 'rgba(59,130,246,0.1)',  text: '#60a5fa' },
+  green: { border: 'rgba(34,197,94,0.3)',   bg: 'rgba(34,197,94,0.1)',   text: '#4ade80' },
+  red:   { border: 'rgba(239,68,68,0.3)',   bg: 'rgba(239,68,68,0.1)',   text: '#f87171' },
 }
 
 type Props = {
@@ -16,13 +15,14 @@ type Props = {
 }
 
 export function KpiCard({ label, value, icon, accent }: Props) {
+  const a = accents[accent]
   return (
-    <div className={cn('rounded-xl border p-5', accents[accent])}>
+    <div className="rounded-xl p-5" style={{ border: `1px solid ${a.border}`, background: a.bg }}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium uppercase tracking-wider opacity-70">{label}</span>
-        {icon}
+        <span className="text-xs font-medium uppercase tracking-wider opacity-70" style={{ color: a.text }}>{label}</span>
+        <span style={{ color: a.text }}>{icon}</span>
       </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
+      <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p>
     </div>
   )
 }
